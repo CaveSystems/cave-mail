@@ -1,59 +1,10 @@
-#region CopyRight 2018
-/*
-    Copyright (c) 2007-2018 Andreas Rohleder (andreas@rohleder.cc)
-    All rights reserved
-*/
-#endregion
-#region License LGPL-3
-/*
-    This program/library/sourcecode is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public License
-    version 3 as published by the Free Software Foundation subsequent called
-    the License.
-
-    You may not use this program/library/sourcecode except in compliance
-    with the License. The License is included in the LICENSE file
-    found at the installation directory or the distribution package.
-
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this software and associated documentation files (the
-    "Software"), to deal in the Software without restriction, including
-    without limitation the rights to use, copy, modify, merge, publish,
-    distribute, sublicense, and/or sell copies of the Software, and to
-    permit persons to whom the Software is furnished to do so, subject to
-    the following conditions:
-
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-#endregion
-#region Authors & Contributors
-/*
-   Author:
-     Andreas Rohleder <andreas@rohleder.cc>
-
-   Contributors:
-
-   Copyright (c) 2007-2014 Andreas Rohleder (andreas@rohleder.cc)
- */
-#endregion
-
-using Cave.Net;
-using Cave.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Text;
+using Cave.Net;
 
 namespace Cave.Mail
 {
@@ -78,19 +29,30 @@ namespace Cave.Mail
         {
             Random l_Random = new Random();
             char[] l_Buffer = new char[count];
-            for (int i = 0; i < count; i++) l_Buffer[i] = (char)l_Random.Next(33, 127);
+            for (int i = 0; i < count; i++)
+            {
+                l_Buffer[i] = (char)l_Random.Next(33, 127);
+            }
+
             return new string(l_Buffer);
         }
 
         static int m_IndexOfEndMark(string text, int start)
         {
-            if (start < 0) return -1;
+            if (start < 0)
+            {
+                return -1;
+            }
+
             int l_Markers = 4;
             for (int i = start; i < text.Length; i++)
             {
                 if (text[i] == '?')
                 {
-                    if (--l_Markers == 0) return i;
+                    if (--l_Markers == 0)
+                    {
+                        return i;
+                    }
                 }
             }
             return -1;
@@ -115,14 +77,25 @@ namespace Cave.Mail
         /// <returns></returns>
         public static string DecodeQuotedPrintable(Encoding encoding, string data)
         {
-            if (encoding == null) throw new ArgumentNullException("encoding");
-            if (data == null) throw new ArgumentNullException("data");
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+
+            if (data == null)
+            {
+                throw new ArgumentNullException("data");
+            }
+
             List<byte> l_Data = new List<byte>(data.Length);
             for (int i = 0; i < data.Length; i++)
             {
                 int l_Byte = data[i];
 
-                if (l_Byte > 127) throw new FormatException(string.Format("Invalid input character at position '{0}' encountered!", i));
+                if (l_Byte > 127)
+                {
+                    throw new FormatException(string.Format("Invalid input character at position '{0}' encountered!", i));
+                }
                 //got '_' == encoded space ?
                 if (l_Byte == '_')
                 {
@@ -136,10 +109,17 @@ namespace Cave.Mail
                     //got line extension ?
                     if (data[i] == '\r')
                     {
-                        if (data[i + 1] == '\n') i++;
+                        if (data[i + 1] == '\n')
+                        {
+                            i++;
+                        }
+
                         continue;
                     }
-                    if (data[i] == '\n') continue;
+                    if (data[i] == '\n')
+                    {
+                        continue;
+                    }
                     //no line extension, decode hex value
                     string l_HexValue = data.Substring(i, 2);
                     int l_Value = Convert.ToInt32(l_HexValue, 16);
@@ -160,8 +140,16 @@ namespace Cave.Mail
         /// <returns></returns>
         public static byte[] EncodeQuotedPrintable(Encoding encoding, string text)
         {
-            if (encoding == null) throw new ArgumentNullException("encoding");
-            if (text == null) throw new ArgumentNullException("text");
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+
+            if (text == null)
+            {
+                throw new ArgumentNullException("text");
+            }
+
             List<byte> result = new List<byte>();
             foreach (byte l_Byte in encoding.GetBytes(text))
             {
@@ -196,7 +184,11 @@ namespace Cave.Mail
         /// <returns></returns>
         public static bool IsEncodedString(string data)
         {
-            if (data == null) throw new ArgumentNullException("data");
+            if (data == null)
+            {
+                throw new ArgumentNullException("data");
+            }
+
             return (!data.Contains(" ") && data.StartsWith("=?") && data.EndsWith("?="));
         }
 
@@ -209,8 +201,16 @@ namespace Cave.Mail
         /// <returns></returns>
         public static string DecodeText(TransferEncoding transferEncoding, Encoding encoding, string data)
         {
-            if (encoding == null) throw new ArgumentNullException("encoding");
-            if (data == null) throw new ArgumentNullException("data");
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+
+            if (data == null)
+            {
+                throw new ArgumentNullException("data");
+            }
+
             switch (transferEncoding)
             {
                 case TransferEncoding.Base64:
@@ -234,8 +234,16 @@ namespace Cave.Mail
         /// <returns></returns>
         public static string DecodeText(TransferEncoding transferEncoding, Encoding encoding, byte[] data)
         {
-            if (encoding == null) throw new ArgumentNullException("encoding");
-            if (transferEncoding == TransferEncoding.Unknown) return encoding.GetString(data);
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+
+            if (transferEncoding == TransferEncoding.Unknown)
+            {
+                return encoding.GetString(data);
+            }
+
             return DecodeText(transferEncoding, encoding, ASCII.GetString(data));
         }
 
@@ -248,7 +256,11 @@ namespace Cave.Mail
         /// <returns></returns>
         public static byte[] EncodeText(TransferEncoding transferEncoding, Encoding encoding, string text)
         {
-            if (encoding == null) throw new ArgumentNullException("encoding");
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+
             switch (transferEncoding)
             {
                 case TransferEncoding.SevenBit:
@@ -282,7 +294,10 @@ namespace Cave.Mail
                     {
                         l_Parts[l_Part++] = l_Data.Substring(l_Start, i - l_Start);
                         l_Start = ++i;
-                        if (l_Part == 2) break;
+                        if (l_Part == 2)
+                        {
+                            break;
+                        }
                     }
                 }
                 l_Parts[2] = l_Data.Substring(l_Start, l_Data.Length - l_Start);
@@ -335,10 +350,17 @@ namespace Cave.Mail
         /// <returns></returns>
         public static string Decode(string data)
         {
-            if (data == null) return null;
+            if (data == null)
+            {
+                return null;
+            }
+
             int l_Start = data.IndexOf("=?");
             int l_End = m_IndexOfEndMark(data, l_Start);
-            if (l_Start >= l_End) return data;
+            if (l_Start >= l_End)
+            {
+                return data;
+            }
 
             StringBuilder result = new StringBuilder(data.Length);
             int pos = 0;
@@ -347,7 +369,10 @@ namespace Cave.Mail
             {
                 //copy text without decoding ?
                 size = l_Start - pos;
-                if (size > 0) result.Append(data.Substring(pos, size));
+                if (size > 0)
+                {
+                    result.Append(data.Substring(pos, size));
+                }
                 //decode
                 size = l_End - l_Start + 2;
                 result.Append(m_Decode(data.Substring(l_Start, size)));
@@ -356,7 +381,11 @@ namespace Cave.Mail
                 l_End = m_IndexOfEndMark(data, l_Start);
             }
             size = data.Length - pos;
-            if (size > 0) result.Append(data.Substring(pos, size));
+            if (size > 0)
+            {
+                result.Append(data.Substring(pos, size));
+            }
+
             return result.ToString();
         }
 
@@ -369,7 +398,10 @@ namespace Cave.Mail
         /// <returns></returns>
         public static string Encode(TransferEncoding transferEncoding, Encoding encoding, string text)
         {
-            if (encoding == null) throw new ArgumentNullException("encoding");
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
             //TODO BREAK LINE AFTER 76 CHARS, NEXT LINE STARTS WITH \t
             switch (transferEncoding)
             {
@@ -389,7 +421,11 @@ namespace Cave.Mail
         /// <returns></returns>
         public static MailAddress DecodeMailAddress(string data)
         {
-            if (data == null) throw new ArgumentNullException("data");
+            if (data == null)
+            {
+                throw new ArgumentNullException("data");
+            }
+
             int l_Index = data.LastIndexOf('@');
             bool l_Recreate = (l_Index == -1) || (l_Index != data.IndexOf('@'));
             if (!l_Recreate)
@@ -410,8 +446,16 @@ namespace Cave.Mail
         /// <returns></returns>
         public static string EncodeMailAddress(TransferEncoding transferEncoding, Encoding encoding, MailAddress address)
         {
-            if (encoding == null) throw new ArgumentNullException("encoding");
-            if (address == null) throw new ArgumentNullException("address");
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+
+            if (address == null)
+            {
+                throw new ArgumentNullException("address");
+            }
+
             if (string.IsNullOrEmpty(address.DisplayName))
             {
                 return address.Address;
