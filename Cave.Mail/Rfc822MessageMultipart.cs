@@ -51,7 +51,7 @@ using System.Net.Mime;
 namespace Cave.Mail
 {
     /// <summary>
-    /// Provides <see cref="Rfc822Message"/> accessor for multipart messages
+    /// Provides <see cref="Rfc822Message"/> accessor for multipart messages.
     /// </summary>
     public class Rfc822MessageMultipart : IEnumerable<Rfc822Message>
     {
@@ -59,7 +59,7 @@ namespace Cave.Mail
         readonly List<Rfc822Message> m_Parts;
 
         /// <summary>
-        /// Gets the <see cref="ContentTypes"/> in this multipart message. This does not traverse into nested multiparts !
+        /// Gets the <see cref="ContentTypes"/> in this multipart message. This does not traverse into nested multiparts !.
         /// </summary>
         /// <returns></returns>
         List<ContentType> m_GetContentTypes()
@@ -79,48 +79,48 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains the number of parts
+        /// Obtains the number of parts.
         /// </summary>
-        public int Count { get { return m_Parts.Count; } }
+        public int Count => m_Parts.Count;
 
         /// <summary>
-        /// Obtains whether the message contains at least one plain text part
+        /// Obtains whether the message contains at least one plain text part.
         /// </summary>
         public bool HasPart(string mediaType)
         {
             foreach (Rfc822Message part in m_Parts)
             {
-                if (part.HasPart(mediaType)) return true;
+                if (part.HasPart(mediaType))
+                {
+                    return true;
+                }
             }
             return false;
         }
 
         /// <summary>
-        /// Obtains the first plain text part found in the message. This can only be accessed after checking <see cref="HasPart"/>
+        /// Obtains the first plain text part found in the message. This can only be accessed after checking <see cref="HasPart"/>.
         /// </summary>
         /// <returns></returns>
         public Rfc822Message GetPart(string mediaType)
         {
             foreach (Rfc822Message part in m_Parts)
             {
-                if (part.HasPart(mediaType)) return part.GetPart(mediaType);
+                if (part.HasPart(mediaType))
+                {
+                    return part.GetPart(mediaType);
+                }
             }
             throw new ArgumentException(string.Format("Message part {0} cannot be found!", mediaType));
         }
 
         /// <summary>
-        /// Obtains all <see cref="ContentType"/>s found. This does not traverse into nested multiparts !
+        /// Obtains all <see cref="ContentType"/>s found. This does not traverse into nested multiparts !.
         /// </summary>
-        public ContentType[] ContentTypes
-        {
-            get
-            {
-                return m_GetContentTypes().ToArray();
-            }
-        }
+        public ContentType[] ContentTypes => m_GetContentTypes().ToArray();
 
         /// <summary>
-        /// Obtains the part with the specified <see cref="ContentType"/>. This does not traverse into nested multiparts !
+        /// Obtains the part with the specified <see cref="ContentType"/>. This does not traverse into nested multiparts !.
         /// </summary>
         /// <param name="contentType"></param>
         /// <returns></returns>
@@ -128,17 +128,21 @@ namespace Cave.Mail
         {
             get
             {
-                if (contentType == null) throw new ArgumentNullException("contentType");
+                if (contentType == null)
+                {
+                    throw new ArgumentNullException("contentType");
+                }
+
                 return this[contentType.MediaType];
             }
         }
 
         /// <summary>
-        /// Obtains the first part found with the specified MediaType (e.g. text/plain). This does not traverse into nested multiparts !
+        /// Obtains the first part found with the specified MediaType (e.g. text/plain). This does not traverse into nested multiparts !.
         /// </summary>
         /// <param name="mediaType"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException">Thrown if the media type cannot be found</exception>
+        /// <exception cref="ArgumentException">Thrown if the media type cannot be found.</exception>
         public Rfc822Message this[string mediaType]
         {
             get
@@ -148,7 +152,10 @@ namespace Cave.Mail
                 for (int i = 0; i < contentTypes.Length; i++)
                 {
                     string l_MediaType = contentTypes[i].MediaType.ToUpperInvariant().GetValidChars("abcdefghijklmnopqrstuvwxyz/");
-                    if (l_MediaType == mediaType) return this[i];
+                    if (l_MediaType == mediaType)
+                    {
+                        return this[i];
+                    }
                 }
                 throw new ArgumentException(string.Format("ContentType {0} not found!", mediaType));
             }
@@ -170,7 +177,7 @@ namespace Cave.Mail
         #region IEnumerable<Rfc822Message> Member
 
         /// <summary>
-        /// Obtains a Rfc822Message enumerator for all parts
+        /// Obtains a Rfc822Message enumerator for all parts.
         /// </summary>
         /// <returns></returns>
         public IEnumerator<Rfc822Message> GetEnumerator()
@@ -183,7 +190,7 @@ namespace Cave.Mail
         #region IEnumerable Member
 
         /// <summary>
-        /// Obtains a Rfc822Message enumerator for all parts
+        /// Obtains a Rfc822Message enumerator for all parts.
         /// </summary>
         /// <returns></returns>
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()

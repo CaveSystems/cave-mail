@@ -52,7 +52,7 @@ using System.Threading;
 namespace Cave.Mail
 {
     /// <summary>
-    /// Provides (html) email sending
+    /// Provides (html) email sending.
     /// </summary>
     public class SimpleMailer 
     {
@@ -92,7 +92,11 @@ namespace Cave.Mail
         {
             get
             {
-                if (Username.Contains("@")) return $"SimpleMailer {Username}";
+                if (Username.Contains("@"))
+                {
+                    return $"SimpleMailer {Username}";
+                }
+
                 return $"SimpleMailer {Username}@{Server}";
             }
         }
@@ -141,12 +145,28 @@ namespace Cave.Mail
         /// <summary>Sends an email.</summary>
         public void Send(Dictionary<string, string> headers = null)
         {
-            if (To.Count == 0) throw new Exception("No recepient (SendTo) address.");
+            if (To.Count == 0)
+            {
+                throw new Exception("No recepient (SendTo) address.");
+            }
+
             using (MailMessage message = new MailMessage())
             {
-                if (headers != null) { foreach (var i in headers) message.Headers[i.Key] = i.Value; }
-                foreach (MailAddress a in To) message.To.Add(a);
-                foreach (MailAddress a in Bcc) message.Bcc.Add(a);
+                if (headers != null) { foreach (var i in headers)
+                    {
+                        message.Headers[i.Key] = i.Value;
+                    }
+                }
+                foreach (MailAddress a in To)
+                {
+                    message.To.Add(a);
+                }
+
+                foreach (MailAddress a in Bcc)
+                {
+                    message.Bcc.Add(a);
+                }
+
                 message.Subject = Subject;
                 message.From = From;
                 AlternateView plainText = AlternateView.CreateAlternateViewFromString(ContentText, null, MediaTypeNames.Text.Plain);
@@ -168,8 +188,12 @@ namespace Cave.Mail
 					}
 					catch
 					{
-						if (i > 3) throw;
-						Thread.Sleep(1000);
+						if (i > 3)
+                        {
+                            throw;
+                        }
+
+                        Thread.Sleep(1000);
 					}
                 }
             }

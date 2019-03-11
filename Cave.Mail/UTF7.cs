@@ -50,7 +50,7 @@ using System.Text;
 namespace Cave.Mail
 {
     /// <summary>
-    /// Provides UTF7 text en-/decoding
+    /// Provides UTF7 text en-/decoding.
     /// </summary>
     public static class UTF7
     {
@@ -67,12 +67,20 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Provides extended UTF-7 decoding (rfc 3501)
+        /// Provides extended UTF-7 decoding (rfc 3501).
         /// </summary>
         public static string DecodeExtendedUTF7(string text)
         {
-            if (text == null) throw new ArgumentNullException("text");
-            if (!text.Contains("&")) return text;
+            if (text == null)
+            {
+                throw new ArgumentNullException("text");
+            }
+
+            if (!text.Contains("&"))
+            {
+                return text;
+            }
+
             StringBuilder result = new StringBuilder();
             StringBuilder code = null;
             for (int i = 0; i < text.Length; i++)
@@ -114,11 +122,15 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Provides extended UTF-7 encoding (rfc 3501)
+        /// Provides extended UTF-7 encoding (rfc 3501).
         /// </summary>
         public static string EncodeExtendedUTF7(string text)
         {
-            if (text == null) throw new ArgumentNullException("text");
+            if (text == null)
+            {
+                throw new ArgumentNullException("text");
+            }
+
             StringBuilder result = new StringBuilder();
             StringBuilder code = null;
             for (int i = 0; i < text.Length; i++)
@@ -142,7 +154,11 @@ namespace Cave.Mail
                     }
                     else
                     {
-                        if (code == null) code = new StringBuilder();
+                        if (code == null)
+                        {
+                            code = new StringBuilder();
+                        }
+
                         code.Append(c);
                     }
                 }

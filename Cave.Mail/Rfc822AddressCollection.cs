@@ -70,7 +70,10 @@ namespace Cave.Mail
             m_Encoding = encoding;
             m_Header = header;
             m_Key = key;
-            if (m_Header[m_Key] == null) m_Header[m_Key] = "";
+            if (m_Header[m_Key] == null)
+            {
+                m_Header[m_Key] = "";
+            }
         }
 
         string m_Data
@@ -108,12 +111,16 @@ namespace Cave.Mail
         #region ICollection<MailAddress> Member
 
         /// <summary>
-        /// Adds a <see cref="MailAddress"/>
+        /// Adds a <see cref="MailAddress"/>.
         /// </summary>
         /// <param name="item"></param>
         public void Add(MailAddress item)
         {
-            if (item == null) throw new ArgumentNullException("item");
+            if (item == null)
+            {
+                throw new ArgumentNullException("item");
+            }
+
             string data = m_Data;
             if (!data.EndsWith(","))
             {
@@ -125,7 +132,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Clears all addresses
+        /// Clears all addresses.
         /// </summary>
         public void Clear()
         {
@@ -133,7 +140,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Checks whether a specified <see cref="MailAddress"/> is part of the list
+        /// Checks whether a specified <see cref="MailAddress"/> is part of the list.
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
@@ -143,7 +150,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Copies all <see cref="MailAddress"/>es to a specified array
+        /// Copies all <see cref="MailAddress"/>es to a specified array.
         /// </summary>
         /// <param name="array"></param>
         /// <param name="arrayIndex"></param>
@@ -153,17 +160,17 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains the number of <see cref="MailAddress"/> present
+        /// Obtains the number of <see cref="MailAddress"/> present.
         /// </summary>
-        public int Count { get { return m_Parse().Count; } }
+        public int Count => m_Parse().Count;
 
         /// <summary>
-        /// returns always false
+        /// returns always false.
         /// </summary>
-        public bool IsReadOnly { get { return false; } }
+        public bool IsReadOnly => false;
 
         /// <summary>
-        /// Removes a <see cref="MailAddress"/> from the list
+        /// Removes a <see cref="MailAddress"/> from the list.
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
@@ -186,7 +193,7 @@ namespace Cave.Mail
         #region IEnumerable<MailAddress> Member
 
         /// <summary>
-        /// Obtains a typed enumerator
+        /// Obtains a typed enumerator.
         /// </summary>
         /// <returns></returns>
         public IEnumerator<MailAddress> GetEnumerator()
@@ -199,7 +206,7 @@ namespace Cave.Mail
         #region IEnumerable Member
 
         /// <summary>
-        /// Obtains an untyped enumerator
+        /// Obtains an untyped enumerator.
         /// </summary>
         /// <returns></returns>
         IEnumerator IEnumerable.GetEnumerator()
@@ -210,7 +217,7 @@ namespace Cave.Mail
         #endregion
 
         /// <summary>
-        /// Provides the header data
+        /// Provides the header data.
         /// </summary>
         /// <returns></returns>
         public override string ToString()

@@ -51,8 +51,8 @@ namespace Cave.Mail.Imap
     static class ImapConst
     {
         /// <summary>
-        /// Obtains the default encoding
+        /// Obtains the default encoding.
         /// </summary>
-        public static Encoding ISO88591 { get { return Encoding.GetEncoding("ISO-8859-1"); } }
+        public static Encoding ISO88591 => Encoding.GetEncoding("ISO-8859-1");
     }
 }

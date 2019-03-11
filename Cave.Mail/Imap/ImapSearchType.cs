@@ -47,7 +47,7 @@
 namespace Cave.Mail.Imap
 {
     /// <summary>
-    /// Provides available search types for imap searches
+    /// Provides available search types for imap searches.
     /// </summary>
     public enum ImapSearchType
     {

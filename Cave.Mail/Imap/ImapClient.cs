@@ -54,11 +54,11 @@ using Cave.Net;
 namespace Cave.Mail.Imap
 {
     /// <summary>
-    /// Provides a simple imap client
+    /// Provides a simple imap client.
     /// </summary>
     public sealed class ImapClient : IDisposable
     {
-        /// <summary>The imap new line characters</summary>
+        /// <summary>The imap new line characters.</summary>
         public const string ImapNewLine = "\r\n";
 
         int m_Counter = 1;
@@ -76,7 +76,11 @@ namespace Cave.Mail.Imap
         {
             get
             {
-                if (m_Client != null) return "ImapClient <" + m_Client.Client.RemoteEndPoint + ">";
+                if (m_Client != null)
+                {
+                    return "ImapClient <" + m_Client.Client.RemoteEndPoint + ">";
+                }
+
                 return "ImapClient <not connected>";
             }
         }
@@ -86,7 +90,11 @@ namespace Cave.Mail.Imap
         ImapAnswer ReadAnswer(string id, bool throwEx)
         {
             ImapAnswer answer = ImapParser.Parse(id, m_Stream);
-            if (throwEx && !answer.Success) answer.Throw();
+            if (throwEx && !answer.Success)
+            {
+                answer.Throw();
+            }
+
             return answer;
         }
 
@@ -118,14 +126,26 @@ namespace Cave.Mail.Imap
             writer.Write(ASCII.GetBytes(command + ImapNewLine));
             writer.Flush();
             ImapAnswer answer = ReadAnswer("+", false);
-            if (!answer.Result.ToUpperInvariant().StartsWith("+ READY")) answer.Throw();
+            if (!answer.Result.ToUpperInvariant().StartsWith("+ READY"))
+            {
+                answer.Throw();
+            }
+
             return id;
         }
 
         void Login(string user, string password)
         {
-            if (user.HasInvalidChars(ASCII.Strings.SafeUrlOptions)) throw new Exception("User has invalid characters!");
-            if (password.HasInvalidChars(ASCII.Strings.SafeUrlOptions)) throw new Exception("Password has invalid characters!");
+            if (user.HasInvalidChars(ASCII.Strings.SafeUrlOptions))
+            {
+                throw new Exception("User has invalid characters!");
+            }
+
+            if (password.HasInvalidChars(ASCII.Strings.SafeUrlOptions))
+            {
+                throw new Exception("Password has invalid characters!");
+            }
+
             ReadAnswer("*", true);
             SendCommand("LOGIN " + user + " " + password);
         }
@@ -153,7 +173,7 @@ namespace Cave.Mail.Imap
             Login(user, password);
         }
 
-        /// <summary>Obtains a list of all present mailboxes</summary>
+        /// <summary>Obtains a list of all present mailboxes.</summary>
         /// <returns></returns>
         public string[] ListMailboxes()
         {
@@ -172,14 +192,14 @@ namespace Cave.Mail.Imap
             return list.ToArray();
         }
 
-        /// <summary>Creates a new mailbox</summary>
+        /// <summary>Creates a new mailbox.</summary>
         /// <param name="mailbox">The mailbox.</param>
         public void CreateMailbox(string mailbox)
         {
             SendCommand("CREATE \"{0}\"", mailbox);
         }
 
-        /// <summary>Selects the mailbox with the specified name</summary>
+        /// <summary>Selects the mailbox with the specified name.</summary>
         /// <param name="mailboxName">Name of the mailbox.</param>
         /// <returns></returns>
         /// <exception cref="System.Exception"></exception>
@@ -187,12 +207,16 @@ namespace Cave.Mail.Imap
         {
             string mailbox = UTF7.EncodeExtendedUTF7(mailboxName);
             ImapAnswer answer = SendCommand("SELECT \"{0}\"", mailbox);
-            if (!answer.Success) throw new Exception(string.Format("Error at select mailbox {0}: {1}", mailboxName, answer.Result));
+            if (!answer.Success)
+            {
+                throw new Exception(string.Format("Error at select mailbox {0}: {1}", mailboxName, answer.Result));
+            }
+
             SelectedMailbox = ImapMailboxInfo.FromAnswer(mailboxName, answer);
             return SelectedMailbox;
         }
 
-        /// <summary>examines a mailbox</summary>
+        /// <summary>examines a mailbox.</summary>
         /// <param name="mailboxName">Name of the mailbox.</param>
         /// <returns></returns>
         /// <exception cref="System.Exception"></exception>
@@ -200,17 +224,25 @@ namespace Cave.Mail.Imap
         {
             string mailbox = UTF7.EncodeExtendedUTF7(mailboxName);
             ImapAnswer answer = SendCommand("EXAMINE \"" + mailbox + "\"");
-            if (!answer.Success) throw new Exception(string.Format("Error at examine mailbox {0}: {1}", mailboxName, answer.Result));
+            if (!answer.Success)
+            {
+                throw new Exception(string.Format("Error at examine mailbox {0}: {1}", mailboxName, answer.Result));
+            }
+
             return ImapMailboxInfo.FromAnswer(mailboxName, answer);
         }
 
-        /// <summary>Retrieves a message by its internal number (1..<see cref="ImapMailboxInfo.Exist" />)</summary>
-        /// <param name="number">The internal message number (1..<see cref="ImapMailboxInfo.Exist" />)</param>
+        /// <summary>Retrieves a message by its internal number (1..<see cref="ImapMailboxInfo.Exist" />).</summary>
+        /// <param name="number">The internal message number (1..<see cref="ImapMailboxInfo.Exist" />).</param>
         /// <returns></returns>
         /// <exception cref="System.ArgumentOutOfRangeException"></exception>
         public byte[] GetMessageData(int number)
         {
-            if (number < 1) throw new ArgumentOutOfRangeException(nameof(number));
+            if (number < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(number));
+            }
+
             ImapAnswer answer = SendCommand("FETCH " + number + " BODY[]");
             int start = Array.IndexOf(answer.Data, (byte)'\n') + 1;
             int end = Array.LastIndexOf(answer.Data, (byte)')');
@@ -219,13 +251,17 @@ namespace Cave.Mail.Imap
             return l_Message;
         }
 
-        /// <summary>Retrieves a message by its internal number (1..<see cref="ImapMailboxInfo.Exist" />)</summary>
-        /// <param name="number">The internal message number (1..<see cref="ImapMailboxInfo.Exist" />)</param>
+        /// <summary>Retrieves a message by its internal number (1..<see cref="ImapMailboxInfo.Exist" />).</summary>
+        /// <param name="number">The internal message number (1..<see cref="ImapMailboxInfo.Exist" />).</param>
         /// <returns></returns>
         /// <exception cref="System.ArgumentOutOfRangeException"></exception>
         public Rfc822Message GetMessage(int number)
         {
-            if (number < 1) throw new ArgumentOutOfRangeException(nameof(number));
+            if (number < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(number));
+            }
+
             ImapAnswer answer = SendCommand("FETCH " + number + " BODY[]");
             int start = Array.IndexOf(answer.Data, (byte)'\n') + 1;
             int end = Array.LastIndexOf(answer.Data, (byte)')') - 2;
@@ -234,38 +270,53 @@ namespace Cave.Mail.Imap
             return Rfc822Message.FromBinary(l_Message);
         }
 
-        /// <summary>Retrieves a message header by its internal number (1..<see cref="ImapMailboxInfo.Exist" />)</summary>
-        /// <param name="number">The internal message number (1..<see cref="ImapMailboxInfo.Exist" />)</param>
+        /// <summary>Retrieves a message header by its internal number (1..<see cref="ImapMailboxInfo.Exist" />).</summary>
+        /// <param name="number">The internal message number (1..<see cref="ImapMailboxInfo.Exist" />).</param>
         /// <returns></returns>
         /// <exception cref="System.ArgumentOutOfRangeException"></exception>
         /// <exception cref="System.FormatException"></exception>
         public Rfc822Message GetMessageHeader(int number)
         {
-            if (number < 1) throw new ArgumentOutOfRangeException(nameof(number));
+            if (number < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(number));
+            }
+
             while (true)
             {
                 ImapAnswer answer = SendCommand("FETCH " + number + " BODY[HEADER]");
-                if (answer.Data.Length == 0) continue;
+                if (answer.Data.Length == 0)
+                {
+                    continue;
+                }
 
                 StreamReader streamReader = answer.GetStreamReader(0);
                 string header = streamReader.ReadLine();
                 int size = int.Parse(header.Substring(header.LastIndexOf('{')).Unbox("{", "}", true));
                 DataReader dataReader = answer.GetDataReader(header.Length + 2);
                 byte[] l_MessageData = dataReader.ReadBytes(size);
-                if (l_MessageData.Length != size) throw new FormatException();
+                if (l_MessageData.Length != size)
+                {
+                    throw new FormatException();
+                }
+
                 Rfc822Message l_Message = Rfc822Message.FromBinary(l_MessageData);
                 return l_Message;
             }
         }
 
-        /// <summary>Uploads a message to the specified mailbox</summary>
+        /// <summary>Uploads a message to the specified mailbox.</summary>
         /// <param name="mailboxName">Name of the mailbox.</param>
         /// <param name="messageData">The message data.</param>
-        /// <exception cref="System.ArgumentNullException">messageData</exception>
+        /// <exception cref="System.ArgumentNullException">messageData.</exception>
         public void UploadMessageData(string mailboxName, byte[] messageData)
         {
             string mailbox = UTF7.EncodeExtendedUTF7(mailboxName);
-            if (messageData == null) throw new ArgumentNullException("messageData");
+            if (messageData == null)
+            {
+                throw new ArgumentNullException("messageData");
+            }
+
             string id = PrepareLiteralDataCommand("APPEND \"" + mailbox + "\" (\\Seen) {" + messageData.Length + "}");
             DataWriter writer = new DataWriter(m_Stream);
             writer.Write(messageData);
@@ -282,7 +333,11 @@ namespace Cave.Mail.Imap
         public ImapNumberSequence Search(ImapSearch search)
         {
             ImapAnswer answer = SendCommand("SEARCH {0}", search);
-            if (!answer.Success) throw new Exception(string.Format("Error at search {0}", search));
+            if (!answer.Success)
+            {
+                throw new Exception(string.Format("Error at search {0}", search));
+            }
+
             ImapNumberSequence sequence = new ImapNumberSequence();
             foreach (string line in answer.GetDataLines())
             {
@@ -306,19 +361,25 @@ namespace Cave.Mail.Imap
         /// <summary>Sets the specified flags at the message with the given number.</summary>
         /// <param name="number">The number.</param>
         /// <param name="flags">The flags.</param>
-        /// <exception cref="Exception">Error at store flags</exception>
+        /// <exception cref="Exception">Error at store flags.</exception>
         public void SetFlags(int number, params string[] flags)
         {
             ImapAnswer answer = SendCommand("STORE {0} +FLAGS ({1})", number, string.Join(" ", flags));
-            if (!answer.Success) throw new Exception("Error at store flags");
+            if (!answer.Success)
+            {
+                throw new Exception("Error at store flags");
+            }
         }
 
         /// <summary>Expunges this instance.</summary>
-        /// <exception cref="Exception">Error at store flags</exception>
+        /// <exception cref="Exception">Error at store flags.</exception>
         public void Expunge()
         {
             ImapAnswer answer = SendCommand("EXPUNGE");
-            if (!answer.Success) throw new Exception("Error at store flags");
+            if (!answer.Success)
+            {
+                throw new Exception("Error at store flags");
+            }
         }
 
         /// <summary>Closes this instance.</summary>
@@ -338,7 +399,11 @@ namespace Cave.Mail.Imap
         {
             if (disposing)
             {
-                if (m_Client is IDisposable dispo) dispo.Dispose();
+                if (m_Client is IDisposable dispo)
+                {
+                    dispo.Dispose();
+                }
+
                 m_Client = null;
                 m_Stream?.Dispose();
                 m_Stream = null; 
@@ -346,7 +411,7 @@ namespace Cave.Mail.Imap
         }
 
         /// <summary>
-        /// Releases all resources used by the this instance
+        /// Releases all resources used by the this instance.
         /// </summary>
         public void Dispose()
         {

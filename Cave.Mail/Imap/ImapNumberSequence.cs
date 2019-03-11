@@ -58,7 +58,7 @@ namespace Cave.Mail.Imap
     public sealed class ImapNumberSequence : IEnumerable
     {
         /// <summary>
-        /// Creates a <see cref="ImapNumberSequence"/> from the given string. The string is created by <see cref="ToString()"/> or received by <see cref="ImapClient.Search(ImapSearch)"/>
+        /// Creates a <see cref="ImapNumberSequence"/> from the given string. The string is created by <see cref="ToString()"/> or received by <see cref="ImapClient.Search(ImapSearch)"/>.
         /// </summary>
         /// <param name="numbers"></param>
         /// <returns></returns>
@@ -81,7 +81,7 @@ namespace Cave.Mail.Imap
         }
 
         /// <summary>
-        /// Creates a <see cref="ImapNumberSequence"/> from the given message number range
+        /// Creates a <see cref="ImapNumberSequence"/> from the given message number range.
         /// </summary>
         /// <param name="firstNumber"></param>
         /// <param name="count"></param>
@@ -92,7 +92,7 @@ namespace Cave.Mail.Imap
         }
 
         /// <summary>
-        /// Creates a <see cref="ImapNumberSequence"/> from the given message number list
+        /// Creates a <see cref="ImapNumberSequence"/> from the given message number list.
         /// </summary>
         /// <param name="numbers"></param>
         /// <returns></returns>
@@ -102,7 +102,7 @@ namespace Cave.Mail.Imap
         }
 
         /// <summary>
-        /// Adds to <see cref="ImapNumberSequence"/>s
+        /// Adds to <see cref="ImapNumberSequence"/>s.
         /// </summary>
         /// <param name="seq1"></param>
         /// <param name="seq2"></param>
@@ -126,7 +126,11 @@ namespace Cave.Mail.Imap
             {
                 for (int i = seq2.FirstNumber; i <= seq2.LastNumber; i++)
                 {
-                    if (l_ResultList.Contains(i)) continue;
+                    if (l_ResultList.Contains(i))
+                    {
+                        continue;
+                    }
+
                     l_ResultList.Add(i);
                 }
             }
@@ -134,7 +138,11 @@ namespace Cave.Mail.Imap
             {
                 foreach (int l_Number in seq2.m_Numbers)
                 {
-                    if (l_ResultList.Contains(l_Number)) continue;
+                    if (l_ResultList.Contains(l_Number))
+                    {
+                        continue;
+                    }
+
                     l_ResultList.Add(l_Number);
                 }
             }
@@ -145,7 +153,7 @@ namespace Cave.Mail.Imap
         int[] m_Numbers;
 
         /// <summary>
-        /// Creates a new empty <see cref="ImapNumberSequence"/>
+        /// Creates a new empty <see cref="ImapNumberSequence"/>.
         /// </summary>
         public ImapNumberSequence()
         {
@@ -154,7 +162,7 @@ namespace Cave.Mail.Imap
         }
 
         /// <summary>
-        /// Creates a new <see cref="ImapNumberSequence"/> with the given message numbers
+        /// Creates a new <see cref="ImapNumberSequence"/> with the given message numbers.
         /// </summary>
         /// <param name="p_Numbers"></param>
         public ImapNumberSequence(int[] p_Numbers)
@@ -164,7 +172,7 @@ namespace Cave.Mail.Imap
         }
 
         /// <summary>
-        /// Creates a new <see cref="ImapNumberSequence"/> with the given message number range
+        /// Creates a new <see cref="ImapNumberSequence"/> with the given message number range.
         /// </summary>
         /// <param name="p_FirstNumber"></param>
         /// <param name="p_LastNumber"></param>
@@ -175,7 +183,7 @@ namespace Cave.Mail.Imap
         }
 
         /// <summary>
-        /// Sorts the sequence numbers
+        /// Sorts the sequence numbers.
         /// </summary>
         public void Sort()
         {
@@ -183,32 +191,32 @@ namespace Cave.Mail.Imap
         }
 
         /// <summary>
-        /// Provides the first number of the message list
+        /// Provides the first number of the message list.
         /// </summary>
-        public int FirstNumber { get { if (IsEmpty) return -1; return m_Numbers[0]; } }
+        public int FirstNumber { get { if (IsEmpty) { return -1; } return m_Numbers[0]; } }
 
         /// <summary>
-        /// Provides the last number of the message list
+        /// Provides the last number of the message list.
         /// </summary>
-        public int LastNumber { get { if (IsEmpty) return -1; return m_Numbers[m_Numbers.Length - 1]; } }
+        public int LastNumber { get { if (IsEmpty) { return -1; } return m_Numbers[m_Numbers.Length - 1]; } }
 
         /// <summary>
-        /// Returns true if the list does not contain single message numbers but a whole range of message numbers
+        /// Returns true if the list does not contain single message numbers but a whole range of message numbers.
         /// </summary>
-        public bool IsRange { get { return m_IsRange; } }
+        public bool IsRange => m_IsRange;
 
         /// <summary>
-        /// Returns true if the list is empty
+        /// Returns true if the list is empty.
         /// </summary>
-        public bool IsEmpty { get { return m_Numbers.Length == 0; } }
+        public bool IsEmpty => m_Numbers.Length == 0;
 
         /// <summary>
-        /// Obtains the number of items in the list
+        /// Obtains the number of items in the list.
         /// </summary>
-        public int Count { get { if (IsRange) return LastNumber - FirstNumber + 1; return m_Numbers.Length; } }
+        public int Count { get { if (IsRange) { return LastNumber - FirstNumber + 1; } return m_Numbers.Length; } }
 
         /// <summary>
-        /// Obtains the string representing the <see cref="ImapNumberSequence"/>
+        /// Obtains the string representing the <see cref="ImapNumberSequence"/>.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
@@ -234,7 +242,11 @@ namespace Cave.Mail.Imap
         /// <returns>Ein <see cref="T:System.Collections.IEnumerator" />-Objekt, das zum Durchlaufen der Auflistung verwendet werden kann.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            if (IsEmpty) return new int[0].GetEnumerator();
+            if (IsEmpty)
+            {
+                return new int[0].GetEnumerator();
+            }
+
             if (IsRange)
             {
                 return new Counter(FirstNumber, LastNumber - FirstNumber + 1).GetEnumerator();

@@ -49,7 +49,7 @@ using System;
 namespace Cave.Mail.Imap
 {
     /// <summary>
-    /// Provides information about an imap mailbox
+    /// Provides information about an imap mailbox.
     /// </summary>
     public class ImapMailboxInfo : IEquatable<ImapMailboxInfo>
     {
@@ -113,8 +113,16 @@ namespace Cave.Mail.Imap
         /// <returns>The result of the operator.</returns>
         public static bool operator ==(ImapMailboxInfo value1, ImapMailboxInfo value2)
         {
-            if (ReferenceEquals(null, value1)) return ReferenceEquals(null, value2);
-            if (ReferenceEquals(null, value2)) return false;
+            if (ReferenceEquals(null, value1))
+            {
+                return ReferenceEquals(null, value2);
+            }
+
+            if (ReferenceEquals(null, value2))
+            {
+                return false;
+            }
+
             return value1.Equals(value2);
         }
 
@@ -124,21 +132,29 @@ namespace Cave.Mail.Imap
         /// <returns>The result of the operator.</returns>
         public static bool operator !=(ImapMailboxInfo value1, ImapMailboxInfo value2)
         {
-            if (ReferenceEquals(null, value1)) return !ReferenceEquals(null, value2);
-            if (ReferenceEquals(null, value2)) return true;
+            if (ReferenceEquals(null, value1))
+            {
+                return !ReferenceEquals(null, value2);
+            }
+
+            if (ReferenceEquals(null, value2))
+            {
+                return true;
+            }
+
             return !value1.Equals(value2);
         }
 
-        /// <summary>Name of the Mailbox</summary>
+        /// <summary>Name of the Mailbox.</summary>
         public string Name { get; private set; }
 
-        /// <summary>Number of recent messages</summary>
+        /// <summary>Number of recent messages.</summary>
         public int Recent { get; private set; }
 
-        /// <summary>Number of messages present</summary>
+        /// <summary>Number of messages present.</summary>
         public int Exist { get; private set; }
 
-        /// <summary>The flags</summary>
+        /// <summary>The flags.</summary>
         public string[] Flags { get; private set; }
 
         /// <summary>Gets the flags that can be set permanently.</summary>
@@ -157,7 +173,7 @@ namespace Cave.Mail.Imap
         /// <value>The unseen.</value>
         public uint Unseen { get; private set; }
 
-        /// <summary>Provides a string "Name [Recent] [Exist]"</summary>
+        /// <summary>Provides a string "Name [Recent] [Exist]".</summary>
         /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
         public override string ToString()
         {
@@ -179,7 +195,11 @@ namespace Cave.Mail.Imap
         /// <returns><c>true</c> if the specified <see cref="object" /> is equal to this instance; otherwise, <c>false</c>.</returns>
         public override bool Equals(object obj)
         {
-            if (obj is ImapMailboxInfo) return base.Equals((ImapMailboxInfo)obj);
+            if (obj is ImapMailboxInfo)
+            {
+                return base.Equals((ImapMailboxInfo)obj);
+            }
+
             return false;
         }
 

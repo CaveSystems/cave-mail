@@ -59,12 +59,16 @@ namespace Cave.Mail
         /// <summary>Checks the specified email address for validity with the mail server responsible for the address.</summary>
         /// <param name="address">The email address to verify.</param>
         /// <param name="serverName">Name of the server.</param>
-        /// <exception cref="ArgumentOutOfRangeException">serverName;ServerName needs to be a full qualified domain name!</exception>
+        /// <exception cref="ArgumentOutOfRangeException">serverName;ServerName needs to be a full qualified domain name!.</exception>
         public static void Verify(this MailAddress address, string serverName)
         {
             int i = serverName.IndexOf('.');
             int n = (i == -1) ? -1 : serverName.IndexOf('.', i + 1);
-            if (n < 0) throw new ArgumentOutOfRangeException(nameof(serverName), "ServerName needs to be a full qualified domain name!");
+            if (n < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(serverName), "ServerName needs to be a full qualified domain name!");
+            }
+
             string email = serverName.Substring(0, i) + '@' + serverName.Substring(i + 1);
             SmtpValidator validator = new SmtpValidator(serverName, new MailAddress(email));
             validator.Validate(address, true);
@@ -84,7 +88,10 @@ namespace Cave.Mail
                 }
                 catch
                 {
-                    if (throwErrors) throw;
+                    if (throwErrors)
+                    {
+                        throw;
+                    }
                 }
             }
         }

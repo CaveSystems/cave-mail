@@ -3,7 +3,7 @@ using System;
 namespace Cave.Mail
 {
     /// <summary>
-    /// Provides a mail reader used to read rfc 822
+    /// Provides a mail reader used to read rfc 822.
     /// </summary>
     public class Rfc822Reader
     {
@@ -11,7 +11,7 @@ namespace Cave.Mail
         int m_Position = 0;
 
         /// <summary>
-        /// Extracts a byte buffer with the specified length starting at the specified position
+        /// Extracts a byte buffer with the specified length starting at the specified position.
         /// </summary>
         /// <param name="start"></param>
         /// <param name="count"></param>
@@ -24,7 +24,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Creates a new <see cref="Rfc822Reader"/> from the specified data
+        /// Creates a new <see cref="Rfc822Reader"/> from the specified data.
         /// </summary>
         /// <param name="data"></param>
         public Rfc822Reader(byte[] data)
@@ -107,7 +107,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Reads a line with the specified encoding without the trailing CR, LF, CRLF
+        /// Reads a line with the specified encoding without the trailing CR, LF, CRLF.
         /// </summary>
         /// <returns></returns>
         public virtual string ReadLine()

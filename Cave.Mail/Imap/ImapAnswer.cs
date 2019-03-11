@@ -57,7 +57,7 @@ namespace Cave.Mail.Imap
 
         public string Result;
 
-        public bool Success { get { return Result.StartsWith(ID + " OK"); } }
+        public bool Success => Result.StartsWith(ID + " OK");
 
         public byte[] Data;
 
@@ -72,7 +72,7 @@ namespace Cave.Mail.Imap
         }
 
         /// <summary>
-        /// Obtains a StreamReader for the current answer
+        /// Obtains a StreamReader for the current answer.
         /// </summary>
         /// <param name="start"></param>
         /// <returns></returns>
@@ -89,7 +89,7 @@ namespace Cave.Mail.Imap
         }
 
         /// <summary>
-        /// Obtains a DataReader for the current answer
+        /// Obtains a DataReader for the current answer.
         /// </summary>
         /// <param name="start"></param>
         /// <returns></returns>
@@ -108,11 +108,18 @@ namespace Cave.Mail.Imap
         internal void Throw()
         {
             int index = Result.IndexOf(' ', ID.Length + 1) + 1;
-            if (index <= 0) throw new InvalidOperationException(); else throw new InvalidOperationException(Result.Substring(index));
+            if (index <= 0)
+            {
+                throw new InvalidOperationException();
+            }
+            else
+            {
+                throw new InvalidOperationException(Result.Substring(index));
+            }
         }
 
         /// <summary>
-        /// Obtains the result
+        /// Obtains the result.
         /// </summary>
         /// <returns></returns>
         public override string ToString()

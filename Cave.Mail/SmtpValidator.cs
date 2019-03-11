@@ -36,6 +36,7 @@
  */
 #endregion Authors & Contributors
 
+using Cave.Net;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -46,12 +47,12 @@ using System.Net.Sockets;
 namespace Cave.Mail
 {
     /// <summary>
-    /// Provides email validation by asking the reciepients smtp server
+    /// Provides email validation by asking the reciepients smtp server.
     /// </summary>
     public class SmtpValidator
     {
         /// <summary>
-        /// Provides available <see cref="SmtpValidator"/> results
+        /// Provides available <see cref="SmtpValidator"/> results.
         /// </summary>
         public enum SmtpValidatorResult
         {
@@ -97,7 +98,7 @@ namespace Cave.Mail
 
         /// <summary>Gets the name of the log source.</summary>
         /// <value>The name of the log source.</value>
-        public string LogSourceName { get { return "SmtpValidator"; } }
+        public string LogSourceName => "SmtpValidator";
 
         /// <summary>Gets our full qualified server address (has to match rdns).</summary>
         /// <value>Our full qualified server address.</value>
@@ -112,7 +113,11 @@ namespace Cave.Mail
         /// <param name="sender">Our email address.</param>
         public SmtpValidator(string server, MailAddress sender)
         {
-            if (Dns.GetHostEntry(server) == null) throw new NetworkException("Cannot find my own server name in dns!");
+            if (Dns.GetHostEntry(server) == null)
+            {
+                throw new NetworkException("Cannot find my own server name in dns!");
+            }
+
             Server = server;
             Sender = sender;
         }
@@ -120,7 +125,7 @@ namespace Cave.Mail
         /// <summary>Validates the specified target email address.</summary>
         /// <param name="target">The target email address.</param>
         /// <param name="throwException">if set to <c>true</c> [throw exception].</param>
-        /// <returns>bool on success, false otherwise</returns>
+        /// <returns>bool on success, false otherwise.</returns>
         /// <exception cref="ArgumentException">
         /// Server not available!;target.Host
         /// or
@@ -130,9 +135,9 @@ namespace Cave.Mail
         /// or
         /// Server does not accept me as sender!;Sender.Address
         /// or
-        /// Target address does not exist!;target.Address
+        /// Target address does not exist!;target.Address.
         /// </exception>
-        /// <exception cref="InvalidDataException">Smtp protocol error!</exception>
+        /// <exception cref="InvalidDataException">Smtp protocol error!.</exception>
         public SmtpValidatorResult Validate(MailAddress target, bool throwException)
         {
             foreach (int port in new int[] { 25, 587 })
@@ -145,37 +150,57 @@ namespace Cave.Mail
                         {
                             StreamWriter writer = new StreamWriter(stream);
                             StreamReader reader = new StreamReader(stream);
-                            if (220 != ParseAnswer(reader.ReadLine()))
+                            if (ParseAnswer(reader.ReadLine()) != 220)
                             {
-                                if (throwException) throw new ArgumentException($"SmtpValidator_ServerNotAvailable {target}");
+                                if (throwException)
+                                {
+                                    throw new ArgumentException($"SmtpValidator_ServerNotAvailable {target}");
+                                }
+
                                 return SmtpValidatorResult.ErrorServer;
                             }
 
                             writer.WriteLine("HELO " + Server);
                             if (!IsOk(ParseAnswer(reader.ReadLine())))
                             {
-                                if (throwException) throw new ArgumentException($"SmtpValidator_ServerDoesNotAcceptMe {target}");
+                                if (throwException)
+                                {
+                                    throw new ArgumentException($"SmtpValidator_ServerDoesNotAcceptMe {target}");
+                                }
+
                                 return SmtpValidatorResult.ErrorMySettings;
                             }
 
                             writer.WriteLine("VRFY " + target.Address);
                             if (!IsOk(ParseAnswer(reader.ReadLine())))
                             {
-                                if (throwException) throw new ArgumentException($"Error_TargetAddressInvalid {target}");
+                                if (throwException)
+                                {
+                                    throw new ArgumentException($"Error_TargetAddressInvalid {target}");
+                                }
+
                                 return SmtpValidatorResult.ErrorAddress;
                             }
 
                             writer.WriteLine("MAIL " + Sender.Address);
                             if (!IsOk(ParseAnswer(reader.ReadLine())))
                             {
-                                if (throwException) throw new ArgumentException($"SmtpValidator_ServerDoesNotAcceptMe {target}");
+                                if (throwException)
+                                {
+                                    throw new ArgumentException($"SmtpValidator_ServerDoesNotAcceptMe {target}");
+                                }
+
                                 return SmtpValidatorResult.ErrorMySettings;
                             }
 
                             writer.WriteLine("RCPT " + target.Address);
                             if (!IsOk(ParseAnswer(reader.ReadLine())))
                             {
-                                if (throwException) throw new ArgumentException($"Error_TargetAddressInvalid {target}");
+                                if (throwException)
+                                {
+                                    throw new ArgumentException($"Error_TargetAddressInvalid {target}");
+                                }
+
                                 return SmtpValidatorResult.ErrorAddress;
                             }
 
@@ -190,13 +215,20 @@ namespace Cave.Mail
                 }
                 catch (ArgumentException ex)
                 {
-                    if (587 == port) throw;
+                    if (port == 587)
+                    {
+                        throw;
+                    }
                 }
                 catch (SocketException ex)
                 {
-                    if (587 == port)
+                    if (port == 587)
                     {
-                        if (throwException) throw;
+                        if (throwException)
+                        {
+                            throw;
+                        }
+
                         switch (ex.SocketErrorCode)
                         {
                             case SocketError.ConnectionRefused:
@@ -213,7 +245,13 @@ namespace Cave.Mail
                 }
                 catch (Exception ex)
                 {
-                    if (587 == port) if (throwException) throw;
+                    if (port == 587)
+                    {
+                        if (throwException)
+                        {
+                            throw;
+                        }
+                    }
                 }
             }
             return SmtpValidatorResult.ErrorServer;

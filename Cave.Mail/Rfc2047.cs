@@ -9,19 +9,19 @@ using Cave.Net;
 namespace Cave.Mail
 {
     /// <summary>
-    /// Provides en-/decoding routines for rfc2047 encoded strings
+    /// Provides en-/decoding routines for rfc2047 encoded strings.
     /// </summary>
     public static class Rfc2047
     {
         static Rfc2047() { DefaultEncoding = Encoding.GetEncoding(1252); }
 
         /// <summary>
-        /// Provides the default encoding of email content / header lines in quoted printable format
+        /// Provides the default encoding of email content / header lines in quoted printable format.
         /// </summary>
         public static Encoding DefaultEncoding { get; private set; }
 
         /// <summary>
-        /// Obtains a random printable string of the specified length
+        /// Obtains a random printable string of the specified length.
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
@@ -59,10 +59,10 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Decodes quoted printable 7bit ascii data to the specified <see cref="Encoding"/>
+        /// Decodes quoted printable 7bit ascii data to the specified <see cref="Encoding"/>.
         /// </summary>
-        /// <param name="encoding">The binary encoding to use</param>
-        /// <param name="data">TransferEncoded ascii data</param>
+        /// <param name="encoding">The binary encoding to use.</param>
+        /// <param name="data">TransferEncoded ascii data.</param>
         /// <returns></returns>
         public static string DecodeQuotedPrintable(Encoding encoding, byte[] data)
         {
@@ -70,10 +70,10 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Decodes quoted printable 7bit ascii data to the specified <see cref="Encoding"/>
+        /// Decodes quoted printable 7bit ascii data to the specified <see cref="Encoding"/>.
         /// </summary>
-        /// <param name="encoding">The binary encoding to use</param>
-        /// <param name="data">TransferEncoded ascii data</param>
+        /// <param name="encoding">The binary encoding to use.</param>
+        /// <param name="data">TransferEncoded ascii data.</param>
         /// <returns></returns>
         public static string DecodeQuotedPrintable(Encoding encoding, string data)
         {
@@ -135,8 +135,8 @@ namespace Cave.Mail
         /// <summary>
         /// Encodes a text to quoted printable 7bit ascii data. The data is not split into parts of the correct length. The caller has to do this manually by inserting '=' + LF at the approprioate positions.
         /// </summary>
-        /// <param name="encoding">The binary encoding to use</param>
-        /// <param name="text">The text to encode</param>
+        /// <param name="encoding">The binary encoding to use.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns></returns>
         public static byte[] EncodeQuotedPrintable(Encoding encoding, string text)
         {
@@ -178,9 +178,9 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains whether the specified string is rfc2047 encoded
+        /// Obtains whether the specified string is rfc2047 encoded.
         /// </summary>
-        /// <param name="data">TransferEncoded ascii data</param>
+        /// <param name="data">TransferEncoded ascii data.</param>
         /// <returns></returns>
         public static bool IsEncodedString(string data)
         {
@@ -193,11 +193,11 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Decodes ascii 7bit data using the specified <see cref="TransferEncoding"/>
+        /// Decodes ascii 7bit data using the specified <see cref="TransferEncoding"/>.
         /// </summary>
-        /// <param name="transferEncoding">The transfer encoding to use</param>
-        /// <param name="encoding">The binary encoding to use</param>
-        /// <param name="data">TransferEncoded ascii data</param>
+        /// <param name="transferEncoding">The transfer encoding to use.</param>
+        /// <param name="encoding">The binary encoding to use.</param>
+        /// <param name="data">TransferEncoded ascii data.</param>
         /// <returns></returns>
         public static string DecodeText(TransferEncoding transferEncoding, Encoding encoding, string data)
         {
@@ -226,11 +226,11 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Decodes ascii 7bit data using the specified <see cref="TransferEncoding"/>
+        /// Decodes ascii 7bit data using the specified <see cref="TransferEncoding"/>.
         /// </summary>
-        /// <param name="transferEncoding">The transfer encoding to use</param>
-        /// <param name="encoding">The binary encoding to use</param>
-        /// <param name="data">TransferEncoded ascii data</param>
+        /// <param name="transferEncoding">The transfer encoding to use.</param>
+        /// <param name="encoding">The binary encoding to use.</param>
+        /// <param name="data">TransferEncoded ascii data.</param>
         /// <returns></returns>
         public static string DecodeText(TransferEncoding transferEncoding, Encoding encoding, byte[] data)
         {
@@ -248,11 +248,11 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Encodes text without start and end marks
+        /// Encodes text without start and end marks.
         /// </summary>
-        /// <param name="transferEncoding">The transfer encoding to use</param>
-        /// <param name="encoding">The binary encoding to use</param>
-        /// <param name="text">The text to encode</param>
+        /// <param name="transferEncoding">The transfer encoding to use.</param>
+        /// <param name="encoding">The binary encoding to use.</param>
+        /// <param name="text">The text to encode.</param>
         /// <returns></returns>
         public static byte[] EncodeText(TransferEncoding transferEncoding, Encoding encoding, string text)
         {
@@ -278,7 +278,7 @@ namespace Cave.Mail
         /// <summary>
         /// Decodes a rfc2047 string with correct start and end marks. If a header line needs to be decoded can be tested with <see cref="IsEncodedString"/>.
         /// </summary>
-        /// <param name="data">TransferEncoded ascii data</param>
+        /// <param name="data">TransferEncoded ascii data.</param>
         /// <returns></returns>
         static string m_Decode(string data)
         {
@@ -336,7 +336,7 @@ namespace Cave.Mail
         /// <summary>
         /// Decodes a rfc2047 string with correct start and end marks. If a header line needs to be decoded can be tested with <see cref="IsEncodedString"/>.
         /// </summary>
-        /// <param name="data">TransferEncoded ascii data</param>
+        /// <param name="data">TransferEncoded ascii data.</param>
         /// <returns></returns>
         public static string Decode(byte[] data)
         {
@@ -344,9 +344,9 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Decodes multiple <see cref="MailAddress"/>es
+        /// Decodes multiple <see cref="MailAddress"/>es.
         /// </summary>
-        /// <param name="data">TransferEncoded ascii data</param>
+        /// <param name="data">TransferEncoded ascii data.</param>
         /// <returns></returns>
         public static string Decode(string data)
         {
@@ -390,11 +390,11 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Encodes a string to a valid rfc2047 string with the specified <see cref="TransferEncoding"/>
+        /// Encodes a string to a valid rfc2047 string with the specified <see cref="TransferEncoding"/>.
         /// </summary>
-        /// <param name="transferEncoding">The transfer encoding to use</param>
-        /// <param name="encoding">The binary encoding to use</param>
-        /// <param name="text">The string to encode</param>
+        /// <param name="transferEncoding">The transfer encoding to use.</param>
+        /// <param name="encoding">The binary encoding to use.</param>
+        /// <param name="text">The string to encode.</param>
         /// <returns></returns>
         public static string Encode(TransferEncoding transferEncoding, Encoding encoding, string text)
         {
@@ -415,7 +415,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Decodes a <see cref="MailAddress"/>
+        /// Decodes a <see cref="MailAddress"/>.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -438,11 +438,11 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Encodes a <see cref="MailAddress"/>
+        /// Encodes a <see cref="MailAddress"/>.
         /// </summary>
-        /// <param name="transferEncoding">The transfer encoding to use</param>
-        /// <param name="encoding">The binary encoding to use</param>
-        /// <param name="address">The address to encode</param>
+        /// <param name="transferEncoding">The transfer encoding to use.</param>
+        /// <param name="encoding">The binary encoding to use.</param>
+        /// <param name="address">The address to encode.</param>
         /// <returns></returns>
         public static string EncodeMailAddress(TransferEncoding transferEncoding, Encoding encoding, MailAddress address)
         {

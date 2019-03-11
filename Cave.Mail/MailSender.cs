@@ -54,7 +54,7 @@ using Cave.IO;
 namespace Cave.Mail
 {
     /// <summary>
-    /// Provides mail sending
+    /// Provides mail sending.
     /// </summary>
     public class MailSender
     {
@@ -78,12 +78,20 @@ namespace Cave.Mail
                 {
                     foreach (string addr in bccString.Split(';'))
                     {
-                        if (addr.Trim() == "") continue;
+                        if (addr.Trim() == "")
+                        {
+                            continue;
+                        }
+
                         BCC.Add(new MailAddress(addr));
                     }
                 }
                 smtpClient = new SmtpClient();
-                if (user != null && pass != null) smtpClient.Credentials = new NetworkCredential(user, pass);
+                if (user != null && pass != null)
+                {
+                    smtpClient.Credentials = new NetworkCredential(user, pass);
+                }
+
                 smtpClient.Host = server;
                 smtpClient.EnableSsl = settings.ReadBool("Mail", "DisableSSL", false) != true;
             }
@@ -94,7 +102,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// The sender address
+        /// The sender address.
         /// </summary>
         public MailAddress Sender { get; set; }
 
@@ -104,7 +112,7 @@ namespace Cave.Mail
 
         /// <summary>Gets the name of the log source.</summary>
         /// <value>The name of the log source.</value>
-        public string LogSourceName { get { return "MailSender"; } }
+        public string LogSourceName => "MailSender";
 
         /// <summary>
         /// Enable or disable ssl.
@@ -112,12 +120,12 @@ namespace Cave.Mail
         public bool EnableSsl => smtpClient.EnableSsl;
 
         /// <summary>
-        /// The mail server to use
+        /// The mail server to use.
         /// </summary>
         public string Server => smtpClient.Host;
 
         /// <summary>
-        /// Sets the credentials
+        /// Sets the credentials.
         /// </summary>
         /// <param name="credentials"></param>
         public void SetCredentials(NetworkCredential credentials)
@@ -132,7 +140,11 @@ namespace Cave.Mail
         /// <returns></returns>
         public bool Send(MailMessage message, int retries = 3, bool throwException = true)
         {
-            foreach (var bcc in BCC) message.Bcc.Add(bcc);
+            foreach (var bcc in BCC)
+            {
+                message.Bcc.Add(bcc);
+            }
+
             message.From = Sender;
             for (int i = 0; ; i++)
             {
@@ -148,7 +160,11 @@ namespace Cave.Mail
                     Trace.TraceError("Error while sending mail to <red>{0}", message.To);
                     if (i >= retries)
                     {
-                        if (throwException) throw;
+                        if (throwException)
+                        {
+                            throw;
+                        }
+
                         return false;
                     }
                 }

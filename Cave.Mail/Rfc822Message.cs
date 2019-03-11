@@ -18,7 +18,7 @@ namespace Cave.Mail
     public class Rfc822Message
     {
         /// <summary>
-        /// Provides a new boundary string for multipart messages (the current boundary can be obtained via <see cref="ContentType"/>)
+        /// Provides a new boundary string for multipart messages (the current boundary can be obtained via <see cref="ContentType"/>).
         /// </summary>
         /// <returns></returns>
         public static string CreateBoundary()
@@ -27,7 +27,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Reads a <see cref="Rfc822Message"/> from the specified binary data
+        /// Reads a <see cref="Rfc822Message"/> from the specified binary data.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -37,7 +37,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Reads a <see cref="Rfc822Message"/> from the specified file
+        /// Reads a <see cref="Rfc822Message"/> from the specified file.
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
@@ -53,7 +53,7 @@ namespace Cave.Mail
         bool ro;
 
         /// <summary>
-        /// Parses rfc822 data and fills the internal structures
+        /// Parses rfc822 data and fills the internal structures.
         /// </summary>
         /// <param name="data"></param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Literale nicht als lokalisierte Parameter übergeben", MessageId = "Cave.Net.Mail.Rfc822Content.Encode(System.Net.Mime.TransferEncoding,System.Text.Encoding,System.String)")]
@@ -230,7 +230,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Saves a Rfc822 message to a file
+        /// Saves a Rfc822 message to a file.
         /// </summary>
         /// <param name="fileName"></param>
         public void Save(string fileName)
@@ -256,7 +256,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains the <see cref="System.Text.Encoding"/> used
+        /// Obtains the <see cref="System.Text.Encoding"/> used.
         /// </summary>
         public Encoding Encoding
         {
@@ -280,7 +280,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Retrieve the first header field with the specified name
+        /// Retrieve the first header field with the specified name.
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -296,7 +296,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Retrieve all header fields with the specified name
+        /// Retrieve all header fields with the specified name.
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -306,7 +306,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains a copy of all header lines
+        /// Obtains a copy of all header lines.
         /// </summary>
         public string[] Header
         {
@@ -323,7 +323,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Gets / sets the 'From:' Header field
+        /// Gets / sets the 'From:' Header field.
         /// </summary>
         public MailAddress From
         {
@@ -340,7 +340,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Gets / sets the 'Delivered-To:' Header field
+        /// Gets / sets the 'Delivered-To:' Header field.
         /// </summary>
         public MailAddress DeliveredTo
         {
@@ -357,7 +357,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Gets / sets the 'Message-ID:' Header field
+        /// Gets / sets the 'Message-ID:' Header field.
         /// </summary>
         public MailAddress MessageID
         {
@@ -374,7 +374,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Gets / sets the 'Return-Path:' Header field
+        /// Gets / sets the 'Return-Path:' Header field.
         /// </summary>
         public MailAddress ReturnPath
         {
@@ -391,7 +391,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Gets / sets the 'MIME-Version:' Header field
+        /// Gets / sets the 'MIME-Version:' Header field.
         /// </summary>
         public Version MimeVersion
         {
@@ -413,7 +413,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Gets / sets the 'Subject:' Header field
+        /// Gets / sets the 'Subject:' Header field.
         /// </summary>
         public string Subject
         {
@@ -430,22 +430,22 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Accesses the 'To:' Header field
+        /// Accesses the 'To:' Header field.
         /// </summary>
         public Rfc822AddressCollection To { get { try { return new Rfc822AddressCollection("To", m_Header, Encoding); } catch { return null; } } }
 
         /// <summary>
-        /// Accesses the 'Cc:' Header field (CarbonCopy)
+        /// Accesses the 'Cc:' Header field (CarbonCopy).
         /// </summary>
         public Rfc822AddressCollection Cc => new Rfc822AddressCollection("Cc", m_Header, Encoding);
 
         /// <summary>
-        /// Accesses the 'Bcc:' Header field (BlindCarbonCopy)
+        /// Accesses the 'Bcc:' Header field (BlindCarbonCopy).
         /// </summary>
         public Rfc822AddressCollection Bcc => new Rfc822AddressCollection("Bcc", m_Header, Encoding);
 
         /// <summary>
-        /// Accesses the 'Date:' Header field
+        /// Accesses the 'Date:' Header field.
         /// </summary>
         public DateTime Date
         {
@@ -462,7 +462,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains the <see cref="ContentType"/>
+        /// Obtains the <see cref="ContentType"/>.
         /// </summary>
         public ContentType ContentType
         {
@@ -514,7 +514,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains the <see cref="TransferEncoding"/>
+        /// Obtains the <see cref="TransferEncoding"/>.
         /// </summary>
         public TransferEncoding TransferEncoding
         {
@@ -538,12 +538,12 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains whether the message looks valid or not
+        /// Obtains whether the message looks valid or not.
         /// </summary>
         public bool IsValid => (m_Header["From"] != null) && (m_Header["To"] != null) && (m_Header["Subject"] != null) && HasPlainTextPart;
 
         /// <summary>
-        /// Gets / sets the content of the message
+        /// Gets / sets the content of the message.
         /// </summary>
         public string Content
         {
@@ -560,7 +560,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains whether the message is multipart or not
+        /// Obtains whether the message is multipart or not.
         /// </summary>
         public bool IsMultipart
         {
@@ -572,12 +572,12 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains whether the message contains at least one plain text part
+        /// Obtains whether the message contains at least one plain text part.
         /// </summary>
         public bool HasPlainTextPart => HasPart("text/plain");
 
         /// <summary>
-        /// Obtains whether the message contains at least one part with the specified media type
+        /// Obtains whether the message contains at least one part with the specified media type.
         /// </summary>
         public bool HasPart(string mediaType)
         {
@@ -591,7 +591,7 @@ namespace Cave.Mail
 
         /// <summary>
         /// Obtains the first part with the specified media type found in the message.
-        /// This can only be accessed after checking <see cref="HasPart"/>
+        /// This can only be accessed after checking <see cref="HasPart"/>.
         /// </summary>
         /// <returns></returns>
         public Rfc822Message GetPart(string mediaType)
@@ -612,7 +612,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains the first plain text part found in the message. This can only be accessed after checking <see cref="HasPlainTextPart"/>
+        /// Obtains the first plain text part found in the message. This can only be accessed after checking <see cref="HasPlainTextPart"/>.
         /// </summary>
         /// <returns></returns>
         public Rfc822Message GetPlainTextPart()
@@ -621,7 +621,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains all parts of the message. This can only be accessed after checking <see cref="IsMultipart"/>
+        /// Obtains all parts of the message. This can only be accessed after checking <see cref="IsMultipart"/>.
         /// </summary>
         public Rfc822MessageMultipart Multipart => new Rfc822MessageMultipart(m_Parts);
 
@@ -634,7 +634,7 @@ namespace Cave.Mail
         public string MultiPartBoundary { get; private set; }
 
         /// <summary>
-        /// Obtains the ContentType of the Message as string
+        /// Obtains the ContentType of the Message as string.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
@@ -643,7 +643,7 @@ namespace Cave.Mail
         }
 
         /// <summary>
-        /// Obtains the hash code for the body of the message
+        /// Obtains the hash code for the body of the message.
         /// </summary>
         /// <returns></returns>
         public override int GetHashCode()
