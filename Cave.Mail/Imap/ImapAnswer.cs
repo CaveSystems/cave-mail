@@ -61,15 +61,9 @@ namespace Cave.Mail.Imap
 
         public byte[] Data;
 
-        public string GetDataString()
-        {
-            return ImapConst.ISO88591.GetString(Data);
-        }
+        public string GetDataString() => ImapConst.ISO88591.GetString(Data);
 
-        public string[] GetDataLines()
-        {
-            return GetDataString().Split(new string[] { "\r\n" }, StringSplitOptions.None);
-        }
+        public string[] GetDataLines() => GetDataString().Split(new string[] { "\r\n" }, StringSplitOptions.None);
 
         /// <summary>
         /// Obtains a StreamReader for the current answer.
@@ -107,7 +101,7 @@ namespace Cave.Mail.Imap
 
         internal void Throw()
         {
-            int index = Result.IndexOf(' ', ID.Length + 1) + 1;
+            var index = Result.IndexOf(' ', ID.Length + 1) + 1;
             if (index <= 0)
             {
                 throw new InvalidOperationException();
@@ -122,9 +116,6 @@ namespace Cave.Mail.Imap
         /// Obtains the result.
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return Result;
-        }
+        public override string ToString() => Result;
     }
 }

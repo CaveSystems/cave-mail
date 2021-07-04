@@ -1,49 +1,3 @@
-#region CopyRight 2018
-/*
-    Copyright (c) 2007-2018 Andreas Rohleder (andreas@rohleder.cc)
-    All rights reserved
-*/
-#endregion
-#region License LGPL-3
-/*
-    This program/library/sourcecode is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public License
-    version 3 as published by the Free Software Foundation subsequent called
-    the License.
-
-    You may not use this program/library/sourcecode except in compliance
-    with the License. The License is included in the LICENSE file
-    found at the installation directory or the distribution package.
-
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this software and associated documentation files (the
-    "Software"), to deal in the Software without restriction, including
-    without limitation the rights to use, copy, modify, merge, publish,
-    distribute, sublicense, and/or sell copies of the Software, and to
-    permit persons to whom the Software is furnished to do so, subject to
-    the following conditions:
-
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-#endregion
-#region Authors & Contributors
-/*
-   Author:
-     Andreas Rohleder <andreas@rohleder.cc>
-
-   Contributors:
- */
-#endregion
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -61,31 +15,31 @@ namespace Cave.Mail
     public class Rfc822AddressCollection : ICollection<MailAddress>
     {
         #region private functionality
-        readonly NameValueCollection m_Header;
-        readonly string m_Key;
-        readonly Encoding m_Encoding;
+        readonly NameValueCollection Header;
+        readonly string Key;
+        readonly Encoding Encoding;
 
         internal Rfc822AddressCollection(string key, NameValueCollection header, Encoding encoding)
         {
-            m_Encoding = encoding;
-            m_Header = header;
-            m_Key = key;
-            if (m_Header[m_Key] == null)
+            Encoding = encoding;
+            Header = header;
+            Key = key;
+            if (Header[Key] == null)
             {
-                m_Header[m_Key] = "";
+                Header[Key] = "";
             }
         }
 
-        string m_Data
+        string Data
         {
-            get { return (m_Header[m_Key] == null) ? "" : m_Header[m_Key].Trim(); }
-            set { m_Header[m_Key] = value; }
+            get => (Header[Key] == null) ? "" : Header[Key].Trim();
+            set => Header[Key] = value;
         }
 
-        List<MailAddress> m_Parse()
+        List<MailAddress> Parse()
         {
-            List<MailAddress> result = new List<MailAddress>();
-            foreach (string address in m_Data.Split(','))
+            var result = new List<MailAddress>();
+            foreach (var address in Data.Split(','))
             {
                 if (address.Contains("@"))
                 {
@@ -95,16 +49,16 @@ namespace Cave.Mail
             return result;
         }
 
-        void m_Write(List<MailAddress> addresses)
+        void Write(List<MailAddress> addresses)
         {
-            StringBuilder data = new StringBuilder();
-            bool l_First = true;
-            foreach (MailAddress address in addresses)
+            var data = new StringBuilder();
+            var first = true;
+            foreach (var address in addresses)
             {
-                if (l_First) { l_First = false; } else { data.Append(", "); }
-                data.Append(Rfc2047.EncodeMailAddress(TransferEncoding.QuotedPrintable, m_Encoding, address));
+                if (first) { first = false; } else { data.Append(", "); }
+                data.Append(Rfc2047.EncodeMailAddress(TransferEncoding.QuotedPrintable, Encoding, address));
             }
-            m_Data = data.ToString();
+            Data = data.ToString();
         }
         #endregion
 
@@ -118,51 +72,42 @@ namespace Cave.Mail
         {
             if (item == null)
             {
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
             }
 
-            string data = m_Data;
+            var data = Data;
             if (!data.EndsWith(","))
             {
                 data += ',';
             }
             data += ' ';
             data += item.ToString();
-            m_Data = data;
+            Data = data;
         }
 
         /// <summary>
         /// Clears all addresses.
         /// </summary>
-        public void Clear()
-        {
-            m_Data = "";
-        }
+        public void Clear() => Data = "";
 
         /// <summary>
         /// Checks whether a specified <see cref="MailAddress"/> is part of the list.
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Contains(MailAddress item)
-        {
-            return m_Parse().Contains(item);
-        }
+        public bool Contains(MailAddress item) => Parse().Contains(item);
 
         /// <summary>
         /// Copies all <see cref="MailAddress"/>es to a specified array.
         /// </summary>
         /// <param name="array"></param>
         /// <param name="arrayIndex"></param>
-        public void CopyTo(MailAddress[] array, int arrayIndex)
-        {
-            m_Parse().CopyTo(array, arrayIndex);
-        }
+        public void CopyTo(MailAddress[] array, int arrayIndex) => Parse().CopyTo(array, arrayIndex);
 
         /// <summary>
         /// Obtains the number of <see cref="MailAddress"/> present.
         /// </summary>
-        public int Count => m_Parse().Count;
+        public int Count => Parse().Count;
 
         /// <summary>
         /// returns always false.
@@ -176,14 +121,14 @@ namespace Cave.Mail
         /// <returns></returns>
         public bool Remove(MailAddress item)
         {
-            List<MailAddress> result = m_Parse();
+            var result = Parse();
             if (result.Remove(item))
             {
                 return false;
             }
             else
             {
-                m_Write(result);
+                Write(result);
                 return true;
             }
         }
@@ -196,10 +141,7 @@ namespace Cave.Mail
         /// Obtains a typed enumerator.
         /// </summary>
         /// <returns></returns>
-        public IEnumerator<MailAddress> GetEnumerator()
-        {
-            return m_Parse().GetEnumerator();
-        }
+        public IEnumerator<MailAddress> GetEnumerator() => Parse().GetEnumerator();
 
         #endregion
 
@@ -209,10 +151,7 @@ namespace Cave.Mail
         /// Obtains an untyped enumerator.
         /// </summary>
         /// <returns></returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable)m_Parse()).GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Parse()).GetEnumerator();
 
         #endregion
 
@@ -220,9 +159,6 @@ namespace Cave.Mail
         /// Provides the header data.
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return m_Key + ": " + m_Data;
-        }
+        public override string ToString() => Key + ": " + Data;
     }
 }

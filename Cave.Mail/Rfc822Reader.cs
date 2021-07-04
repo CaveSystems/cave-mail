@@ -7,8 +7,8 @@ namespace Cave.Mail
     /// </summary>
     public class Rfc822Reader
     {
-        byte[] m_Data;
-        int m_Position = 0;
+        readonly byte[] Data;
+        int position = 0;
 
         /// <summary>
         /// Extracts a byte buffer with the specified length starting at the specified position.
@@ -18,8 +18,8 @@ namespace Cave.Mail
         /// <returns></returns>
         public byte[] Extract(int start, int count)
         {
-            byte[] result = new byte[count];
-            Buffer.BlockCopy(m_Data, start, result, 0, count);
+            var result = new byte[count];
+            Buffer.BlockCopy(Data, start, result, 0, count);
             return result;
         }
 
@@ -27,10 +27,7 @@ namespace Cave.Mail
         /// Creates a new <see cref="Rfc822Reader"/> from the specified data.
         /// </summary>
         /// <param name="data"></param>
-        public Rfc822Reader(byte[] data)
-        {
-            m_Data = data;
-        }
+        public Rfc822Reader(byte[] data) => Data = data;
 
         /// <summary>
         /// Peeks at the next byte. Result is -1 if no more bytes available.
@@ -38,12 +35,12 @@ namespace Cave.Mail
         /// <returns></returns>
         public virtual int Peek()
         {
-            if (m_Position >= m_Data.Length)
+            if (position >= Data.Length)
             {
                 return -1;
             }
 
-            return m_Data[m_Position];
+            return Data[position];
         }
 
         /// <summary>
@@ -52,12 +49,12 @@ namespace Cave.Mail
         /// <returns></returns>
         public virtual int Read()
         {
-            if (m_Position >= m_Data.Length)
+            if (position >= Data.Length)
             {
                 return -1;
             }
 
-            return m_Data[m_Position++];
+            return Data[position++];
         }
 
         /// <summary>
@@ -67,8 +64,8 @@ namespace Cave.Mail
         /// <returns></returns>
         public string ReadBlock(int count)
         {
-            string result = ASCII.GetString(m_Data, m_Position, count);
-            m_Position += count;
+            var result = ASCII.GetString(Data, position, count);
+            position += count;
             return result;
         }
 
@@ -79,8 +76,8 @@ namespace Cave.Mail
         /// <returns></returns>
         public byte[] ReadBlockData(int count)
         {
-            byte[] result = Extract(m_Position, count);
-            m_Position += count;
+            var result = Extract(position, count);
+            position += count;
             return result;
         }
 
@@ -90,8 +87,8 @@ namespace Cave.Mail
         /// <returns></returns>
         public virtual string ReadToEnd()
         {
-            string result = ASCII.GetString(m_Data, m_Position, m_Data.Length - m_Position);
-            m_Position = m_Data.Length;
+            var result = ASCII.GetString(Data, position, Data.Length - position);
+            position = Data.Length;
             return result;
         }
 
@@ -101,9 +98,9 @@ namespace Cave.Mail
         /// <returns></returns>
         public byte[] ReadToEndData()
         {
-            int start = m_Position;
-            m_Position = m_Data.Length;
-            return Extract(start, m_Position - start);
+            var start = position;
+            position = Data.Length;
+            return Extract(start, position - start);
         }
 
         /// <summary>
@@ -112,44 +109,44 @@ namespace Cave.Mail
         /// <returns></returns>
         public virtual string ReadLine()
         {
-            int start = m_Position;
-            while (m_Position < m_Data.Length)
+            var start = position;
+            while (position < Data.Length)
             {
-                switch (m_Data[m_Position])
+                switch (Data[position])
                 {
                     case 0x0D:
                     {
-                        int l_End = m_Position;
-                        m_Position += 1;
-                        if (m_Data[m_Position] == 0x0A) { m_Position += 1; }
-                        return Rfc2047.DefaultEncoding.GetString(m_Data, start, l_End - start);
+                        var end = position;
+                        position += 1;
+                        if (Data[position] == 0x0A) { position += 1; }
+                        return Rfc2047.DefaultEncoding.GetString(Data, start, end - start);
                     }
                     case 0x0A:
                     {
-                        int l_End = m_Position;
-                        m_Position += 1;
-                        return Rfc2047.DefaultEncoding.GetString(m_Data, start, l_End - start);
+                        var end = position;
+                        position += 1;
+                        return Rfc2047.DefaultEncoding.GetString(Data, start, end - start);
                     }
                 }
-                m_Position++;
+                position++;
             }
-            int size = m_Data.Length - start;
+            var size = Data.Length - start;
             if (size == 0)
             {
                 return null;
             }
 
-            return ASCII.GetString(m_Data, start, size);
+            return ASCII.GetString(Data, start, size);
         }
 
         /// <summary>
         /// Provides the current position in the reader.
         /// </summary>
-        public int Position { get => m_Position; set { if ((value >= m_Data.Length) || (value < 0)) { throw new ArgumentOutOfRangeException(nameof(value)); } m_Position = value; } }
+        public int Position { get => position; set { if ((value >= Data.Length) || (value < 0)) { throw new ArgumentOutOfRangeException(nameof(value)); } position = value; } }
 
         /// <summary>
         /// Provides the overall length of data this reader works on.
         /// </summary>
-        public int Length => m_Data.Length;
+        public int Length => Data.Length;
     }
 }

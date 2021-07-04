@@ -54,276 +54,273 @@ namespace Cave.Mail.Imap
     /// </summary>
     public class ImapSearch
     {
-        static string m_CheckString(string p_String)
+        static string CheckString(string text)
         {
-            if (Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(p_String)) != p_String)
+            if (Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(text)) != text)
             {
                 throw new Exception("ImapSearch does not allow string searches with characters not part of US-ASCII !");
             }
 
-            return p_String;
+            return text;
         }
 
         /// <summary>
         /// Searches all messages in the mailbox.
         /// </summary>
-        public static ImapSearch ALL => new ImapSearch(ImapSearchType.ALL);
+        public static ImapSearch ALL => new(ImapSearchType.ALL);
 
         /// <summary>
         /// Searches for messages that match all search keys.
         /// </summary>
-        public static ImapSearch AND(params ImapSearch[] p_Searches)
+        public static ImapSearch AND(params ImapSearch[] searches)
         {
-            if (p_Searches.Length < 1)
+            if (searches.Length < 1)
             {
                 throw new Exception("ImapSearch.AND needs at least 1 search!");
             }
 
-            StringBuilder l_Result = new StringBuilder();
-            l_Result.Append(p_Searches[0]);
-            for (int i = 1; i < p_Searches.Length; i++)
+            var result = new StringBuilder();
+            result.Append(searches[0]);
+            for (var i = 1; i < searches.Length; i++)
             {
-                l_Result.Append(' ');
-                l_Result.Append(p_Searches[i].ToString());
+                result.Append(' ');
+                result.Append(searches[i].ToString());
             }
-            return new ImapSearch(ImapSearchType._MULTIPLE, l_Result.ToString());
+            return new ImapSearch(ImapSearchType._MULTIPLE, result.ToString());
         }
 
         /// <summary>
         /// Searches messages with the \Answered flag set.
         /// </summary>
-        public static ImapSearch ANSWERED => new ImapSearch(ImapSearchType.ANSWERED);
+        public static ImapSearch ANSWERED => new(ImapSearchType.ANSWERED);
 
         /// <summary>
         /// Searches messages that contain the specified string in the envelope structure's BCC field.
         /// </summary>
-        public static ImapSearch BCC => new ImapSearch(ImapSearchType.BCC);
+        public static ImapSearch BCC => new(ImapSearchType.BCC);
 
         /// <summary>
         /// Searches messages whose internal date (disregarding time and timezone) is earlier than the specified date.
         /// </summary>
-        public static ImapSearch BEFORE(DateTime p_DateTime) { return new ImapSearch(ImapSearchType.BEFORE, p_DateTime.ToString("d-mmm-yyyy")); }
+        public static ImapSearch BEFORE(DateTime dateTime) => new(ImapSearchType.BEFORE, dateTime.ToString("d-mmm-yyyy"));
 
         /// <summary>
         /// Searches messages that contain the specified string in the body of the message.
         /// </summary>
-        public static ImapSearch BODY(string p_String) { return new ImapSearch(ImapSearchType.BODY, m_CheckString(p_String)); }
+        public static ImapSearch BODY(string address) => new(ImapSearchType.BODY, CheckString(address));
 
         /// <summary>
         /// Searches messages that contain the specified string in the envelope structure's CC field.
         /// </summary>
-        public static ImapSearch CC(string p_String) { return new ImapSearch(ImapSearchType.CC, m_CheckString(p_String)); }
+        public static ImapSearch CC(string address) => new(ImapSearchType.CC, CheckString(address));
 
         /// <summary>
         /// Searches for messages with the \Deleted flag set.
         /// </summary>
-        public static ImapSearch DELETED => new ImapSearch(ImapSearchType.DELETED);
+        public static ImapSearch DELETED => new(ImapSearchType.DELETED);
 
         /// <summary>
         /// Searches for messages with the \Draft flag set.
         /// </summary>
-        public static ImapSearch DRAFT => new ImapSearch(ImapSearchType.DRAFT);
+        public static ImapSearch DRAFT => new(ImapSearchType.DRAFT);
 
         /// <summary>
         /// Searches for messages with the \Flagged flag set.
         /// </summary>
-        public static ImapSearch FLAGGED => new ImapSearch(ImapSearchType.FLAGGED);
+        public static ImapSearch FLAGGED => new(ImapSearchType.FLAGGED);
 
         /// <summary>
         /// Searches for messages that contain the specified string in the envelope structure's FROM field.
         /// </summary>
-        public static ImapSearch FROM(string p_String) { return new ImapSearch(ImapSearchType.FROM, m_CheckString(p_String)); }
+        public static ImapSearch FROM(string address) => new(ImapSearchType.FROM, CheckString(address));
 
         /// <summary>
         /// Searches for messages that have a header with the specified field-name (as defined in [RFC-2822]) and that contains the specified string in the text of the header (what comes after the colon). If the string to search is zero-length, this matches all messages that have a header line with the specified field-name regardless of the contents.
         /// </summary>
-        public static ImapSearch HEADER(string p_FieldName, string p_String) { return new ImapSearch(ImapSearchType.HEADER, m_CheckString(p_FieldName + " " + p_String)); }
+        public static ImapSearch HEADER(string fieldName, string text) => new(ImapSearchType.HEADER, CheckString(fieldName + " " + text));
 
         /// <summary>
         /// Searches for messages with the specified keyword flag set.
         /// </summary>
-        public static ImapSearch KEYWORD(string p_Flag) { return new ImapSearch(ImapSearchType.KEYWORD, m_CheckString(p_Flag)); }
+        public static ImapSearch KEYWORD(string flag) => new(ImapSearchType.KEYWORD, CheckString(flag));
 
         /// <summary>
         /// Searches for messages with an [RFC-2822] size larger than the specified number of octets.
         /// </summary>
-        public static ImapSearch LARGER(int p_Size) { return new ImapSearch(ImapSearchType.LARGER, p_Size.ToString()); }
+        public static ImapSearch LARGER(int size) => new(ImapSearchType.LARGER, size.ToString());
 
         /// <summary>
         /// Searches for messages that have the \Recent flag set but not the \Seen flag. This is functionally equivalent to "(RECENT UNSEEN)".
         /// </summary>
-        public static ImapSearch NEW => new ImapSearch(ImapSearchType.NEW);
+        public static ImapSearch NEW => new(ImapSearchType.NEW);
 
         /// <summary>
         /// Searches messages that do not match the specified search key.
         /// </summary>
-        public static ImapSearch NOT(ImapSearch p_Search) { return new ImapSearch(ImapSearchType.NOT, p_Search.ToString()); }
+        public static ImapSearch NOT(ImapSearch search) => new(ImapSearchType.NOT, search.ToString());
 
         /// <summary>
         /// Searches for messages that do not have the \Recent flag set. This is functionally equivalent to "NOT RECENT" (as opposed to "NOT NEW").
         /// </summary>
-        public static ImapSearch OLD => new ImapSearch(ImapSearchType.OLD);
+        public static ImapSearch OLD => new(ImapSearchType.OLD);
 
         /// <summary>
         /// Searches for messages whose internal date (disregarding time and timezone) is within the specified date.
         /// </summary>
-        public static ImapSearch ON(DateTime p_Date) { return new ImapSearch(ImapSearchType.ON, p_Date.ToString("d-mmm-yyyy")); }
+        public static ImapSearch ON(DateTime date) => new(ImapSearchType.ON, date.ToString("d-mmm-yyyy"));
 
         /// <summary>
         /// Searches for messages that match either search key.
         /// </summary>
-        public static ImapSearch OR(params ImapSearch[] p_Searches)
+        public static ImapSearch OR(params ImapSearch[] searches)
         {
-            if (p_Searches.Length < 2)
+            if (searches.Length < 2)
             {
                 throw new Exception("ImapSearch.OR needs at least 2 searches!");
             }
 
-            StringBuilder l_Result = new StringBuilder();
-            l_Result.Append(p_Searches[0]);
-            for (int i = 1; i < p_Searches.Length; i++)
+            var result = new StringBuilder();
+            result.Append(searches[0]);
+            for (var i = 1; i < searches.Length; i++)
             {
-                l_Result.Append(" OR ");
-                l_Result.Append(p_Searches[i].ToString());
+                result.Append(" OR ");
+                result.Append(searches[i].ToString());
             }
-            return new ImapSearch(ImapSearchType._MULTIPLE, l_Result.ToString());
+            return new ImapSearch(ImapSearchType._MULTIPLE, result.ToString());
         }
 
         /// <summary>
         /// Messages that have the \Recent flag set.
         /// </summary>
-        public static ImapSearch RECENT => new ImapSearch(ImapSearchType.RECENT);
+        public static ImapSearch RECENT => new(ImapSearchType.RECENT);
 
         /// <summary>
         /// Messages that have the \Seen flag set.
         /// </summary>
-        public static ImapSearch SEEN => new ImapSearch(ImapSearchType.SEEN);
+        public static ImapSearch SEEN => new(ImapSearchType.SEEN);
 
         /// <summary>
         /// Searches for messages whose [RFC-2822] Date: header (disregarding time and timezone) is earlier than the specified date.
         /// </summary>
-        public static ImapSearch SENTBEFORE(DateTime p_Date) { return new ImapSearch(ImapSearchType.SENTBEFORE, p_Date.ToString("d-mmm-yyyy")); }
+        public static ImapSearch SENTBEFORE(DateTime date) => new(ImapSearchType.SENTBEFORE, date.ToString("d-mmm-yyyy"));
 
         /// <summary>
         /// Searches for messages whose [RFC-2822] Date: header (disregarding time and timezone) is within the specified date.
         /// </summary>
-        public static ImapSearch SENTON(DateTime p_Date) { return new ImapSearch(ImapSearchType.SENTON, p_Date.ToString("d-mmm-yyyy")); }
+        public static ImapSearch SENTON(DateTime date) => new(ImapSearchType.SENTON, date.ToString("d-mmm-yyyy"));
 
         /// <summary>
         /// Searches for messages whose [RFC-2822] Date: header (disregarding time and timezone) is within or later than the specified date.
         /// </summary>
-        public static ImapSearch SENTSINCE(DateTime p_Date) { return new ImapSearch(ImapSearchType.SENTSINCE, p_Date.ToString("d-mmm-yyyy")); }
+        public static ImapSearch SENTSINCE(DateTime date) => new(ImapSearchType.SENTSINCE, date.ToString("d-mmm-yyyy"));
 
         /// <summary>
         /// Searches for messages whose internal date (disregarding time and timezone) is within or later than the specified date.
         /// </summary>
-        public static ImapSearch SINCE(DateTime p_Date) { return new ImapSearch(ImapSearchType.SINCE, p_Date.ToString("d-mmm-yyyy")); }
+        public static ImapSearch SINCE(DateTime date) => new(ImapSearchType.SINCE, date.ToString("d-mmm-yyyy"));
 
         /// <summary>
         /// Searches for messages with an [RFC-2822] size smaller than the specified number of octets.
         /// </summary>
-        public static ImapSearch SMALLER(int p_Size) { return new ImapSearch(ImapSearchType.SMALLER, p_Size.ToString()); }
+        public static ImapSearch SMALLER(int size) => new(ImapSearchType.SMALLER, size.ToString());
 
         /// <summary>
         /// Searches for messages that contain the specified string in the envelope structure's SUBJECT field.
         /// </summary>
-        public static ImapSearch SUBJECT(string p_String) { return new ImapSearch(ImapSearchType.SUBJECT, m_CheckString(p_String)); }
+        public static ImapSearch SUBJECT(string text) => new(ImapSearchType.SUBJECT, CheckString(text));
 
         /// <summary>
         /// Searches for messages that contain the specified string in the header or body of the message.
         /// </summary>
-        public static ImapSearch TEXT(string p_String) { return new ImapSearch(ImapSearchType.TEXT, m_CheckString(p_String)); }
+        public static ImapSearch TEXT(string text) => new(ImapSearchType.TEXT, CheckString(text));
 
         /// <summary>
         /// Searches for messages that contain the specified string in the envelope structure's TO field.
         /// </summary>
-        public static ImapSearch TO(string p_String) { return new ImapSearch(ImapSearchType.TO, m_CheckString(p_String)); }
+        public static ImapSearch TO(string address) => new(ImapSearchType.TO, CheckString(address));
 
         /// <summary>
         /// Searches for messages with unique identifiers corresponding to the specified unique identifier set. Sequence set ranges are permitted.
         /// </summary>
-        public static ImapSearch UID(uint p_UID) { return new ImapSearch(ImapSearchType.UID, p_UID.ToString()); }
+        public static ImapSearch UID(uint uid) => new(ImapSearchType.UID, uid.ToString());
 
         /// <summary>
         /// Searches for messages with unique identifiers corresponding to the specified unique identifier set. Sequence set ranges are permitted.
         /// </summary>
-        /// <param name="p_UIDStart"></param>
-        /// <param name="p_UIDEnd"></param>
+        /// <param name="uidFirst"></param>
+        /// <param name="uidLast"></param>
         /// <returns></returns>
-        public static ImapSearch UID(uint p_UIDStart, int p_UIDEnd) { return new ImapSearch(ImapSearchType.UID, p_UIDStart.ToString() + " " + p_UIDEnd.ToString()); }
+        public static ImapSearch UID(uint uidFirst, int uidLast) => new(ImapSearchType.UID, uidFirst.ToString() + " " + uidLast.ToString());
 
         /// <summary>
         /// Searches messages that do not have the \Deleted flag set.
         /// </summary>
-        public static ImapSearch UNANSWERED => new ImapSearch(ImapSearchType.UNANSWERED);
+        public static ImapSearch UNANSWERED => new(ImapSearchType.UNANSWERED);
 
         /// <summary>
         /// Searches messages that do not have the \Deleted flag set.
         /// </summary>
-        public static ImapSearch UNDELETED => new ImapSearch(ImapSearchType.UNDELETED);
+        public static ImapSearch UNDELETED => new(ImapSearchType.UNDELETED);
 
         /// <summary>
         /// Searches messages that do not have the \Draft flag set.
         /// </summary>
-        public static ImapSearch UNDRAFT => new ImapSearch(ImapSearchType.UNDRAFT);
+        public static ImapSearch UNDRAFT => new(ImapSearchType.UNDRAFT);
 
         /// <summary>
         /// Searches messages that do not have the \Flagged flag set.
         /// </summary>
-        public static ImapSearch UNFLAGGED => new ImapSearch(ImapSearchType.UNFLAGGED);
+        public static ImapSearch UNFLAGGED => new(ImapSearchType.UNFLAGGED);
 
         /// <summary>
         /// Searches messages that do not have the specified keyword flag set.
         /// </summary>
-        public static ImapSearch UNKEYWORD(string p_Keyword)
+        public static ImapSearch UNKEYWORD(string keyword)
         {
-            if (String.IsNullOrEmpty(p_Keyword))
+            if (string.IsNullOrEmpty(keyword))
             {
-                throw new ArgumentNullException("Keyword");
+                throw new ArgumentNullException(nameof(keyword));
             }
 
-            return new ImapSearch(ImapSearchType.UNKEYWORD, p_Keyword);
+            return new ImapSearch(ImapSearchType.UNKEYWORD, keyword);
         }
 
         /// <summary>
         /// Searches messages that do not have the \Seen flag set.
         /// </summary>
-        public static ImapSearch UNSEEN => new ImapSearch(ImapSearchType.UNSEEN);
+        public static ImapSearch UNSEEN => new(ImapSearchType.UNSEEN);
 
-        string m_Text;
+        readonly string Text;
 
-        private ImapSearch(ImapSearchType p_Type)
-            : this(p_Type, null)
+        private ImapSearch(ImapSearchType type)
+            : this(type, null)
         { }
 
-        private ImapSearch(ImapSearchType p_Type, string p_Parameters)
+        private ImapSearch(ImapSearchType type, string parameters)
         {
-            m_Text = "";
-            if (String.IsNullOrEmpty(p_Parameters))
+            Text = "";
+            if (string.IsNullOrEmpty(parameters))
             {
-                if (p_Type == ImapSearchType._MULTIPLE)
+                if (type == ImapSearchType._MULTIPLE)
                 {
                     throw new InvalidOperationException();
                 }
 
-                m_Text = p_Type.ToString();
+                Text = type.ToString();
                 return;
             }
-            if (p_Type == ImapSearchType._MULTIPLE)
+            if (type == ImapSearchType._MULTIPLE)
             {
-                m_Text = p_Parameters;
+                Text = parameters;
                 return;
             }
-            m_Text = p_Type.ToString() + " " + p_Parameters;
+            Text = type.ToString() + " " + parameters;
         }
 
         /// <summary>
         /// Provides the searchtext.
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return m_Text;
-        }
+        public override string ToString() => Text;
     }
 }

@@ -1,43 +1,4 @@
-﻿#region CopyRight 2018
-/*
-    Copyright (c) 2003-2018 Andreas Rohleder (andreas@rohleder.cc)
-    All rights reserved
-*/
-#endregion
-#region License LGPL-3
-/*
-    This program/library/sourcecode is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public License
-    version 3 as published by the Free Software Foundation subsequent called
-    the License.
-
-    You may not use this program/library/sourcecode except in compliance
-    with the License. The License is included in the LICENSE file
-    found at the installation directory or the distribution package.
-
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-#endregion License
-#region Authors & Contributors
-/*
-   Author:
-     Andreas Rohleder <andreas@rohleder.cc>
-
-   Contributors:
- */
-#endregion Authors & Contributors
-
-using Cave.Collections.Generic;
-using Cave.IO;
+﻿using Cave.Collections.Generic;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -103,26 +64,26 @@ namespace Cave.Mail
 
         /// <summary>Gets or sets the server.</summary>
         /// <value>The server.</value>
-        public string Server { get { return server; } set { server = value; } }
+        public string Server { get => server; set => server = value; }
 
         /// <summary>Gets or sets the port.</summary>
         /// <value>The port.</value>
-        public int Port { get { return port; } set { port = value; } }
+        public int Port { get => port; set => port = value; }
 
         /// <summary>Gets or sets the password.</summary>
         /// <value>The password.</value>
-        public string Password { get { return password; } set { password = value; } }
+        public string Password { get => password; set => password = value; }
 
         /// <summary>Gets or sets the username.</summary>
         /// <value>The username.</value>
-        public string Username { get { return username; } set { username = value; } }
+        public string Username { get => username; set => username = value; }
 
         #endregion
 
         #region constructor        
         /// <summary>Initializes a new instance of the <see cref="SimpleMailer"/> class using the given configuration.</summary>
         /// <param name="config">The configuration.</param>
-        public SimpleMailer(ISettings config)
+        public SimpleMailer(IniReader config)
         {
             if (!config.GetValue("Mail", "Server", ref server) ||
                 !config.GetValue("Mail", "Port", ref port) ||
@@ -132,7 +93,7 @@ namespace Cave.Mail
                 throw new Exception("[Mail] configuration is invalid!");
             }
             //TODO: Optional Display Name for Sender
-            string from = config.ReadSetting("Mail", "From");
+            var from = config.ReadSetting("Mail", "From");
             From = new MailAddress(from);
             To.LoadAddresses(config.ReadSection("SendTo", true));
             Bcc.LoadAddresses(config.ReadSection("BlindCarbonCopy", true));
@@ -150,51 +111,53 @@ namespace Cave.Mail
                 throw new Exception("No recepient (SendTo) address.");
             }
 
-            using (MailMessage message = new MailMessage())
+            using var message = new MailMessage();
+            if (headers != null)
             {
-                if (headers != null) { foreach (var i in headers)
+                foreach (var i in headers)
+                {
+                    message.Headers[i.Key] = i.Value;
+                }
+            }
+            foreach (var a in To)
+            {
+                message.To.Add(a);
+            }
+
+            foreach (var a in Bcc)
+            {
+                message.Bcc.Add(a);
+            }
+
+            message.Subject = Subject;
+            message.From = From;
+            var plainText = AlternateView.CreateAlternateViewFromString(ContentText, null, MediaTypeNames.Text.Plain);
+            var htmlText = AlternateView.CreateAlternateViewFromString(ContentHtml, Encoding.UTF8, MediaTypeNames.Text.Html);
+            message.AlternateViews.Add(plainText);
+            message.AlternateViews.Add(htmlText);
+            for (var i = 0; ; i++)
+            {
+                try
+                {
+                    var client = new SmtpClient(Server, Port)
                     {
-                        message.Headers[i.Key] = i.Value;
+                        Timeout = 50000,
+                        EnableSsl = true,
+                        Credentials = new NetworkCredential(Username, Password)
+                    };
+                    client.Send(message);
+                    (client as IDisposable)?.Dispose();
+                    Trace.TraceInformation("Sent email '<green>{0}<default>' to <cyan>{1}", message.Subject, message.To);
+                    break;
+                }
+                catch
+                {
+                    if (i > 3)
+                    {
+                        throw;
                     }
-                }
-                foreach (MailAddress a in To)
-                {
-                    message.To.Add(a);
-                }
 
-                foreach (MailAddress a in Bcc)
-                {
-                    message.Bcc.Add(a);
-                }
-
-                message.Subject = Subject;
-                message.From = From;
-                AlternateView plainText = AlternateView.CreateAlternateViewFromString(ContentText, null, MediaTypeNames.Text.Plain);
-                AlternateView htmlText = AlternateView.CreateAlternateViewFromString(ContentHtml, Encoding.UTF8, MediaTypeNames.Text.Html);
-                message.AlternateViews.Add(plainText);
-                message.AlternateViews.Add(htmlText);
-                for (int i = 0; ; i++)
-                {
-					try
-					{
-						SmtpClient client = new SmtpClient(Server, Port);
-						client.Timeout = 50000;
-						client.EnableSsl = true;
-						client.Credentials = new NetworkCredential(Username, Password);
-						client.Send(message);
-						(client as IDisposable)?.Dispose();
-						Trace.TraceInformation("Sent email '<green>{0}<default>' to <cyan>{1}", message.Subject, message.To);
-						break;
-					}
-					catch
-					{
-						if (i > 3)
-                        {
-                            throw;
-                        }
-
-                        Thread.Sleep(1000);
-					}
+                    Thread.Sleep(1000);
                 }
             }
         }

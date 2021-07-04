@@ -1,41 +1,4 @@
-#region CopyRight 2018
-/*
-    Copyright (c) 2003-2018 Andreas Rohleder (andreas@rohleder.cc)
-    All rights reserved
-*/
-#endregion
-#region License LGPL-3
-/*
-    This program/library/sourcecode is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public License
-    version 3 as published by the Free Software Foundation subsequent called
-    the License.
-
-    You may not use this program/library/sourcecode except in compliance
-    with the License. The License is included in the LICENSE file
-    found at the installation directory or the distribution package.
-
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-#endregion License
-#region Authors & Contributors
-/*
-   Author:
-     Andreas Rohleder <andreas@rohleder.cc>
-
-   Contributors:
- */
-#endregion Authors & Contributors
-
+using Cave.Logging;
 using Cave.Net;
 using System;
 using System.Diagnostics;
@@ -51,6 +14,8 @@ namespace Cave.Mail
     /// </summary>
     public class SmtpValidator
     {
+        static readonly Logger Log = new(nameof(SmtpValidator));
+
         /// <summary>
         /// Provides available <see cref="SmtpValidator"/> results.
         /// </summary>
@@ -72,16 +37,12 @@ namespace Cave.Mail
             ErrorAddress,
         }
 
-        bool IsOk(int v)
-        {
-            return (v >= 250) && (v < 260);
-        }
+        static bool ResultIsValid(int v) => (v >= 250) && (v < 260);
 
-        int ParseAnswer(string answer)
+        static int ParseAnswer(string answer)
         {
-            string[] parts = answer.Split(new char[] { ' ' }, 2);
-            int code;
-            if (!int.TryParse(parts[0], out code))
+            var parts = answer.Split(new char[] { ' ' }, 2);
+            if (!int.TryParse(parts[0], out var code))
             {
                 throw new InvalidDataException("SmtpValidator_ProtocolError");
             }
@@ -95,10 +56,6 @@ namespace Cave.Mail
             }
             return code;
         }
-
-        /// <summary>Gets the name of the log source.</summary>
-        /// <value>The name of the log source.</value>
-        public string LogSourceName => "SmtpValidator";
 
         /// <summary>Gets our full qualified server address (has to match rdns).</summary>
         /// <value>Our full qualified server address.</value>
@@ -140,85 +97,76 @@ namespace Cave.Mail
         /// <exception cref="InvalidDataException">Smtp protocol error!.</exception>
         public SmtpValidatorResult Validate(MailAddress target, bool throwException)
         {
-            foreach (int port in new int[] { 25, 587 })
+            foreach (var port in new int[] { 25, 587 })
             {
                 try
                 {
-                    using (TcpClient client = new TcpClient(target.Host, port))
+                    using (var client = new TcpClient(target.Host, port))
                     {
-                        using (Stream stream = client.GetStream())
+                        using Stream stream = client.GetStream();
+                        var writer = new StreamWriter(stream);
+                        var reader = new StreamReader(stream);
+                        if (ParseAnswer(reader.ReadLine()) != 220)
                         {
-                            StreamWriter writer = new StreamWriter(stream);
-                            StreamReader reader = new StreamReader(stream);
-                            if (ParseAnswer(reader.ReadLine()) != 220)
+                            if (throwException)
                             {
-                                if (throwException)
-                                {
-                                    throw new ArgumentException($"SmtpValidator_ServerNotAvailable {target}");
-                                }
-
-                                return SmtpValidatorResult.ErrorServer;
+                                throw new ArgumentException($"SmtpValidator_ServerNotAvailable {target}");
                             }
 
-                            writer.WriteLine("HELO " + Server);
-                            if (!IsOk(ParseAnswer(reader.ReadLine())))
-                            {
-                                if (throwException)
-                                {
-                                    throw new ArgumentException($"SmtpValidator_ServerDoesNotAcceptMe {target}");
-                                }
-
-                                return SmtpValidatorResult.ErrorMySettings;
-                            }
-
-                            writer.WriteLine("VRFY " + target.Address);
-                            if (!IsOk(ParseAnswer(reader.ReadLine())))
-                            {
-                                if (throwException)
-                                {
-                                    throw new ArgumentException($"Error_TargetAddressInvalid {target}");
-                                }
-
-                                return SmtpValidatorResult.ErrorAddress;
-                            }
-
-                            writer.WriteLine("MAIL " + Sender.Address);
-                            if (!IsOk(ParseAnswer(reader.ReadLine())))
-                            {
-                                if (throwException)
-                                {
-                                    throw new ArgumentException($"SmtpValidator_ServerDoesNotAcceptMe {target}");
-                                }
-
-                                return SmtpValidatorResult.ErrorMySettings;
-                            }
-
-                            writer.WriteLine("RCPT " + target.Address);
-                            if (!IsOk(ParseAnswer(reader.ReadLine())))
-                            {
-                                if (throwException)
-                                {
-                                    throw new ArgumentException($"Error_TargetAddressInvalid {target}");
-                                }
-
-                                return SmtpValidatorResult.ErrorAddress;
-                            }
-
-                            writer.WriteLine("RSET");
-                            string s = reader.ReadLine();
-
-                            writer.WriteLine("QUIT");
-                            s = reader.ReadLine();
+                            return SmtpValidatorResult.ErrorServer;
                         }
+
+                        writer.WriteLine("HELO " + Server);
+                        if (!ResultIsValid(ParseAnswer(reader.ReadLine())))
+                        {
+                            if (throwException)
+                            {
+                                throw new ArgumentException($"SmtpValidator_ServerDoesNotAcceptMe {target}");
+                            }
+
+                            return SmtpValidatorResult.ErrorMySettings;
+                        }
+
+                        writer.WriteLine("VRFY " + target.Address);
+                        if (!ResultIsValid(ParseAnswer(reader.ReadLine())))
+                        {
+                            if (throwException)
+                            {
+                                throw new ArgumentException($"Error_TargetAddressInvalid {target}");
+                            }
+
+                            return SmtpValidatorResult.ErrorAddress;
+                        }
+
+                        writer.WriteLine("MAIL " + Sender.Address);
+                        if (!ResultIsValid(ParseAnswer(reader.ReadLine())))
+                        {
+                            if (throwException)
+                            {
+                                throw new ArgumentException($"SmtpValidator_ServerDoesNotAcceptMe {target}");
+                            }
+
+                            return SmtpValidatorResult.ErrorMySettings;
+                        }
+
+                        writer.WriteLine("RCPT " + target.Address);
+                        if (!ResultIsValid(ParseAnswer(reader.ReadLine())))
+                        {
+                            if (throwException)
+                            {
+                                throw new ArgumentException($"Error_TargetAddressInvalid {target}");
+                            }
+
+                            return SmtpValidatorResult.ErrorAddress;
+                        }
+
+                        writer.WriteLine("RSET");
+                        var s = reader.ReadLine();
+
+                        writer.WriteLine("QUIT");
+                        s = reader.ReadLine();
                     }
                     return SmtpValidatorResult.Success;
-                }
-                catch (ArgumentException ex)
-                {
-                    if (port == 587)
-                    {
-                        throw;
-                    }
                 }
                 catch (SocketException ex)
                 {
@@ -229,18 +177,12 @@ namespace Cave.Mail
                             throw;
                         }
 
-                        switch (ex.SocketErrorCode)
+                        Log.LogWarning(ex, $"Socket error <red>{ex.SocketErrorCode}<default>!");
+                        return ex.SocketErrorCode switch
                         {
-                            case SocketError.ConnectionRefused:
-                            case SocketError.ConnectionReset:
-                            case SocketError.HostDown:
-                            case SocketError.HostNotFound:
-                            case SocketError.HostUnreachable:
-                                return SmtpValidatorResult.ErrorServer;
-
-                            default:
-                                return SmtpValidatorResult.ErrorMyNetwork;
-                        }
+                            SocketError.ConnectionRefused or SocketError.ConnectionReset or SocketError.HostDown or SocketError.HostNotFound or SocketError.HostUnreachable => SmtpValidatorResult.ErrorServer,
+                            _ => SmtpValidatorResult.ErrorMyNetwork,
+                        };
                     }
                 }
                 catch (Exception ex)
@@ -252,8 +194,10 @@ namespace Cave.Mail
                             throw;
                         }
                     }
+                    Log.LogWarning(ex, $"Error during smtp validation!");
                 }
             }
+
             return SmtpValidatorResult.ErrorServer;
         }
     }

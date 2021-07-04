@@ -57,6 +57,13 @@ namespace Cave.Mail.Imap
     /// </summary>
     public sealed class ImapNumberSequence : IEnumerable
     {
+        static readonly int[] Empty =
+#if NET20 || NET35 || NET45
+            new int[0];
+#else
+            Array.Empty<int>();
+#endif
+
         /// <summary>
         /// Creates a <see cref="ImapNumberSequence"/> from the given string. The string is created by <see cref="ToString()"/> or received by <see cref="ImapClient.Search(ImapSearch)"/>.
         /// </summary>
@@ -65,14 +72,14 @@ namespace Cave.Mail.Imap
         public static ImapNumberSequence FromString(string numbers)
         {
             numbers = numbers.UnboxBrackets(false);
-            ImapNumberSequence result = new ImapNumberSequence();
-            List<int> list = new List<int>();
-            foreach (string str in numbers.Split(new char[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries))
+            var result = new ImapNumberSequence();
+            var list = new List<int>();
+            foreach (var str in numbers.Split(new char[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 if (str.IndexOf(':') > -1)
                 {
-                    string[] l_Parts = str.Split(':');
-                    result += new ImapNumberSequence(Convert.ToInt32(l_Parts[0]), Convert.ToInt32(l_Parts[1]));
+                    var parts = str.Split(':');
+                    result += new ImapNumberSequence(Convert.ToInt32(parts[0]), Convert.ToInt32(parts[1]));
                     continue;
                 }
                 list.Add(Convert.ToInt32(str));
@@ -86,20 +93,14 @@ namespace Cave.Mail.Imap
         /// <param name="firstNumber"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        public static ImapNumberSequence CreateRange(int firstNumber, int count)
-        {
-            return new ImapNumberSequence(firstNumber, count + firstNumber - 1);
-        }
+        public static ImapNumberSequence CreateRange(int firstNumber, int count) => new(firstNumber, count + firstNumber - 1);
 
         /// <summary>
         /// Creates a <see cref="ImapNumberSequence"/> from the given message number list.
         /// </summary>
         /// <param name="numbers"></param>
         /// <returns></returns>
-        public static ImapNumberSequence CreateList(params int[] numbers)
-        {
-            return new ImapNumberSequence(numbers);
-        }
+        public static ImapNumberSequence CreateList(params int[] numbers) => new(numbers);
 
         /// <summary>
         /// Adds to <see cref="ImapNumberSequence"/>s.
@@ -109,111 +110,107 @@ namespace Cave.Mail.Imap
         /// <returns></returns>
         public static ImapNumberSequence operator +(ImapNumberSequence seq1, ImapNumberSequence seq2)
         {
-            List<int> l_ResultList = new List<int>(seq1.Count + seq2.Count);
+            var resultList = new List<int>(seq1.Count + seq2.Count);
 
             if (seq1.IsRange)
             {
-                for (int i = seq1.FirstNumber; i <= seq1.LastNumber; i++)
+                for (var i = seq1.FirstNumber; i <= seq1.LastNumber; i++)
                 {
-                    l_ResultList.Add(i);
+                    resultList.Add(i);
                 }
             }
             else
             {
-                l_ResultList.AddRange(seq1.m_Numbers);
+                resultList.AddRange(seq1.Numbers);
             }
             if (seq2.IsRange)
             {
-                for (int i = seq2.FirstNumber; i <= seq2.LastNumber; i++)
+                for (var i = seq2.FirstNumber; i <= seq2.LastNumber; i++)
                 {
-                    if (l_ResultList.Contains(i))
+                    if (resultList.Contains(i))
                     {
                         continue;
                     }
 
-                    l_ResultList.Add(i);
+                    resultList.Add(i);
                 }
             }
             else
             {
-                foreach (int l_Number in seq2.m_Numbers)
+                foreach (var number in seq2.Numbers)
                 {
-                    if (l_ResultList.Contains(l_Number))
+                    if (resultList.Contains(number))
                     {
                         continue;
                     }
 
-                    l_ResultList.Add(l_Number);
+                    resultList.Add(number);
                 }
             }
-            return new ImapNumberSequence(l_ResultList.ToArray());
+            return new ImapNumberSequence(resultList.ToArray());
         }
 
-        bool m_IsRange;
-        int[] m_Numbers;
+        readonly int[] Numbers;
 
         /// <summary>
         /// Creates a new empty <see cref="ImapNumberSequence"/>.
         /// </summary>
         public ImapNumberSequence()
         {
-            m_Numbers = new int[0];
-            m_IsRange = false;
+            Numbers = Empty;
+            IsRange = false;
         }
 
         /// <summary>
         /// Creates a new <see cref="ImapNumberSequence"/> with the given message numbers.
         /// </summary>
-        /// <param name="p_Numbers"></param>
-        public ImapNumberSequence(int[] p_Numbers)
+        /// <param name="numbers"></param>
+        public ImapNumberSequence(int[] numbers)
         {
-            m_IsRange = false;
-            m_Numbers = p_Numbers;
+            IsRange = false;
+            Numbers = numbers;
         }
 
         /// <summary>
         /// Creates a new <see cref="ImapNumberSequence"/> with the given message number range.
         /// </summary>
-        /// <param name="p_FirstNumber"></param>
-        /// <param name="p_LastNumber"></param>
-        public ImapNumberSequence(int p_FirstNumber, int p_LastNumber)
+        /// <param name="first"></param>
+        /// <param name="last"></param>
+        public ImapNumberSequence(int first, int last)
         {
-            m_IsRange = true;
-            m_Numbers = new int[] { p_FirstNumber, p_LastNumber };
+            IsRange = true;
+            Numbers = new int[] { first, last };
         }
 
         /// <summary>
         /// Sorts the sequence numbers.
         /// </summary>
-        public void Sort()
-        {
-            Array.Sort<int>(m_Numbers);
-        }
+        public void Sort() => Array.Sort(Numbers);
 
         /// <summary>
         /// Provides the first number of the message list.
         /// </summary>
-        public int FirstNumber { get { if (IsEmpty) { return -1; } return m_Numbers[0]; } }
+        public int FirstNumber { get { if (IsEmpty) { return -1; } return Numbers[0]; } }
 
         /// <summary>
         /// Provides the last number of the message list.
         /// </summary>
-        public int LastNumber { get { if (IsEmpty) { return -1; } return m_Numbers[m_Numbers.Length - 1]; } }
+        public int LastNumber { get { if (IsEmpty) { return -1; } return Numbers[Numbers.Length - 1]; } }
 
         /// <summary>
         /// Returns true if the list does not contain single message numbers but a whole range of message numbers.
         /// </summary>
-        public bool IsRange => m_IsRange;
+        public bool IsRange { get; private set; }
 
         /// <summary>
         /// Returns true if the list is empty.
         /// </summary>
-        public bool IsEmpty => m_Numbers.Length == 0;
+        public bool IsEmpty => Numbers.Length == 0;
 
         /// <summary>
         /// Obtains the number of items in the list.
         /// </summary>
-        public int Count { get { if (IsRange) { return LastNumber - FirstNumber + 1; } return m_Numbers.Length; } }
+        public int Count { get { if (IsRange) { return LastNumber - FirstNumber + 1; } return Numbers.Length; } }
 
         /// <summary>
         /// Obtains the string representing the <see cref="ImapNumberSequence"/>.
@@ -221,18 +218,18 @@ namespace Cave.Mail.Imap
         /// <returns></returns>
         public override string ToString()
         {
-            if (m_IsRange)
+            if (IsRange)
             {
                 return FirstNumber + ":" + LastNumber;
             }
             else
             {
-                StringBuilder strBuilder = new StringBuilder();
-                strBuilder.Append(m_Numbers[0]);
-                for (int i = 1; i < m_Numbers.Length; i++)
+                var strBuilder = new StringBuilder();
+                strBuilder.Append(Numbers[0]);
+                for (var i = 1; i < Numbers.Length; i++)
                 {
                     strBuilder.Append(',');
-                    strBuilder.Append(m_Numbers[i].ToString());
+                    strBuilder.Append(Numbers[i]);
                 }
                 return strBuilder.ToString();
             }
@@ -244,14 +241,14 @@ namespace Cave.Mail.Imap
         {
             if (IsEmpty)
             {
-                return new int[0].GetEnumerator();
+                return Empty.GetEnumerator();
             }
 
             if (IsRange)
             {
                 return new Counter(FirstNumber, LastNumber - FirstNumber + 1).GetEnumerator();
             }
-            return m_Numbers.GetEnumerator();
+            return Numbers.GetEnumerator();
         }
     }
 }

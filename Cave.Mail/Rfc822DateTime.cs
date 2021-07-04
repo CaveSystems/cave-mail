@@ -1,48 +1,3 @@
-#region CopyRight 2018
-/*
-    Copyright (c) 2007-2018 Andreas Rohleder (andreas@rohleder.cc)
-    All rights reserved
-*/
-#endregion
-#region License LGPL-3
-/*
-    This program/library/sourcecode is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public License
-    version 3 as published by the Free Software Foundation subsequent called
-    the License.
-
-    You may not use this program/library/sourcecode except in compliance
-    with the License. The License is included in the LICENSE file
-    found at the installation directory or the distribution package.
-
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this software and associated documentation files (the
-    "Software"), to deal in the Software without restriction, including
-    without limitation the rights to use, copy, modify, merge, publish,
-    distribute, sublicense, and/or sell copies of the Software, and to
-    permit persons to whom the Software is furnished to do so, subject to
-    the following conditions:
-
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-#endregion
-#region Authors & Contributors
-/*
-   Author:
-     Andreas Rohleder <andreas@rohleder.cc>
-
-   Contributors:
- */
-#endregion
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -54,9 +9,9 @@ namespace Cave.Mail
     /// </summary>
     public static class Rfc822DateTime
     {
-        static bool m_CheckString(ref string date, string pattern)
+        static bool CheckString(ref string date, string pattern)
         {
-            int index = date.IndexOf(pattern);
+            var index = date.IndexOf(pattern);
             if (index < 0)
             {
                 return false;
@@ -66,12 +21,12 @@ namespace Cave.Mail
             return true;
         }
 
-        static List<int> m_ValueExtractor(string date)
+        static List<int> ValueExtractor(string date)
         {
-            List<int> result = new List<int>();
-            bool l_GotOne = false;
-            int current = 0;
-            foreach (char c in date)
+            var result = new List<int>();
+            var gotOne = false;
+            var current = 0;
+            foreach (var c in date)
             {
                 switch (c)
                 {
@@ -85,20 +40,20 @@ namespace Cave.Mail
                     case '7':
                     case '8':
                     case '9':
-                        l_GotOne = true;
-                        current = current * 10 + (c - '0');
+                        gotOne = true;
+                        current = (current * 10) + (c - '0');
                         break;
                     default:
-                        if (l_GotOne)
+                        if (gotOne)
                         {
                             result.Add(current);
                             current = 0;
-                            l_GotOne = false;
+                            gotOne = false;
                         }
                         break;
                 }
             }
-            if (l_GotOne)
+            if (gotOne)
             {
                 result.Add(current);
             }
@@ -125,12 +80,11 @@ namespace Cave.Mail
         {
             if (rfc822DateTime == null)
             {
-                throw new ArgumentNullException("rfc822DateTime");
+                throw new ArgumentNullException(nameof(rfc822DateTime));
             }
             //try default parser first
             {
-                DateTime result;
-                if (DateTime.TryParse(rfc822DateTime, out result))
+                if (DateTime.TryParse(rfc822DateTime, out var result))
                 {
                     return result;
                 }
@@ -138,64 +92,64 @@ namespace Cave.Mail
             //try to manually parse
             try
             {
-                SimpleDate result = new SimpleDate();
-                double l_LocalDifference = 0;
+                var result = new SimpleDate();
+                double localDifference = 0;
 
-                string l_Date = rfc822DateTime.ToUpperInvariant();
-                if (m_CheckString(ref l_Date, "JAN"))
+                var date = rfc822DateTime.ToUpperInvariant();
+                if (CheckString(ref date, "JAN"))
                 {
                     result.Month = 1;
                 }
-                else if (m_CheckString(ref l_Date, "FEB"))
+                else if (CheckString(ref date, "FEB"))
                 {
                     result.Month = 2;
                 }
-                else if (m_CheckString(ref l_Date, "MAR"))
+                else if (CheckString(ref date, "MAR"))
                 {
                     result.Month = 3;
                 }
-                else if (m_CheckString(ref l_Date, "APR"))
+                else if (CheckString(ref date, "APR"))
                 {
                     result.Month = 4;
                 }
-                else if (m_CheckString(ref l_Date, "MAY"))
+                else if (CheckString(ref date, "MAY"))
                 {
                     result.Month = 5;
                 }
-                else if (m_CheckString(ref l_Date, "JUN"))
+                else if (CheckString(ref date, "JUN"))
                 {
                     result.Month = 6;
                 }
-                else if (m_CheckString(ref l_Date, "JUL"))
+                else if (CheckString(ref date, "JUL"))
                 {
                     result.Month = 7;
                 }
-                else if (m_CheckString(ref l_Date, "AUG"))
+                else if (CheckString(ref date, "AUG"))
                 {
                     result.Month = 8;
                 }
-                else if (m_CheckString(ref l_Date, "SEP"))
+                else if (CheckString(ref date, "SEP"))
                 {
                     result.Month = 9;
                 }
-                else if (m_CheckString(ref l_Date, "OCT"))
+                else if (CheckString(ref date, "OCT"))
                 {
                     result.Month = 10;
                 }
-                else if (m_CheckString(ref l_Date, "NOV"))
+                else if (CheckString(ref date, "NOV"))
                 {
                     result.Month = 11;
                 }
-                else if (m_CheckString(ref l_Date, "DEC"))
+                else if (CheckString(ref date, "DEC"))
                 {
                     result.Month = 12;
                 }
 
-                int timeZoneIndex = l_Date.IndexOfAny(new char[] { '+', '-' });
+                var timeZoneIndex = date.IndexOfAny(new char[] { '+', '-' });
                 if (timeZoneIndex > -1)
                 {
-                    string timeZone = l_Date.Substring(timeZoneIndex).Trim();
-                    l_Date = l_Date.Substring(0, timeZoneIndex);
+                    var timeZone = date.Substring(timeZoneIndex).Trim();
+                    date = date.Substring(0, timeZoneIndex);
                     try
                     {
                         if (timeZone.Length > 5)
@@ -203,147 +157,147 @@ namespace Cave.Mail
                             timeZone = timeZone.Substring(0, 5);
                         }
 
-                        l_LocalDifference = int.Parse(timeZone) / 100.0;
+                        localDifference = int.Parse(timeZone) / 100.0;
                     }
                     catch
                     {
-                        l_LocalDifference = 0;
+                        localDifference = 0;
                     }
                 }
-                if (l_LocalDifference == 0)
+                if (localDifference == 0)
                 {
-                    if (m_CheckString(ref l_Date, " mst"))
+                    if (CheckString(ref date, " mst"))
                     {
-                        l_LocalDifference = -7;
+                        localDifference = -7;
                     }
-                    else if (m_CheckString(ref l_Date, " mdt"))
+                    else if (CheckString(ref date, " mdt"))
                     {
-                        l_LocalDifference = -6;
+                        localDifference = -6;
                     }
-                    else if (m_CheckString(ref l_Date, " cst"))
+                    else if (CheckString(ref date, " cst"))
                     {
-                        l_LocalDifference = -6;
+                        localDifference = -6;
                     }
-                    else if (m_CheckString(ref l_Date, " pst"))
+                    else if (CheckString(ref date, " pst"))
                     {
-                        l_LocalDifference = -5;
+                        localDifference = -5;
                     }
-                    else if (m_CheckString(ref l_Date, " cdt"))
+                    else if (CheckString(ref date, " cdt"))
                     {
-                        l_LocalDifference = -5;
+                        localDifference = -5;
                     }
-                    else if (m_CheckString(ref l_Date, " est"))
+                    else if (CheckString(ref date, " est"))
                     {
-                        l_LocalDifference = -5;
+                        localDifference = -5;
                     }
-                    else if (m_CheckString(ref l_Date, " pdt"))
+                    else if (CheckString(ref date, " pdt"))
                     {
-                        l_LocalDifference = -4;
+                        localDifference = -4;
                     }
-                    else if (m_CheckString(ref l_Date, " edt"))
+                    else if (CheckString(ref date, " edt"))
                     {
-                        l_LocalDifference = -4;
+                        localDifference = -4;
                     }
-                    else if (m_CheckString(ref l_Date, " a"))
+                    else if (CheckString(ref date, " a"))
                     {
-                        l_LocalDifference = +1;
+                        localDifference = +1;
                     }
-                    else if (m_CheckString(ref l_Date, " b"))
+                    else if (CheckString(ref date, " b"))
                     {
-                        l_LocalDifference = +2;
+                        localDifference = +2;
                     }
-                    else if (m_CheckString(ref l_Date, " c"))
+                    else if (CheckString(ref date, " c"))
                     {
-                        l_LocalDifference = +3;
+                        localDifference = +3;
                     }
-                    else if (m_CheckString(ref l_Date, " d"))
+                    else if (CheckString(ref date, " d"))
                     {
-                        l_LocalDifference = +4;
+                        localDifference = +4;
                     }
-                    else if (m_CheckString(ref l_Date, " e"))
+                    else if (CheckString(ref date, " e"))
                     {
-                        l_LocalDifference = +5;
+                        localDifference = +5;
                     }
-                    else if (m_CheckString(ref l_Date, " f"))
+                    else if (CheckString(ref date, " f"))
                     {
-                        l_LocalDifference = +6;
+                        localDifference = +6;
                     }
-                    else if (m_CheckString(ref l_Date, " g"))
+                    else if (CheckString(ref date, " g"))
                     {
-                        l_LocalDifference = +7;
+                        localDifference = +7;
                     }
-                    else if (m_CheckString(ref l_Date, " h"))
+                    else if (CheckString(ref date, " h"))
                     {
-                        l_LocalDifference = +8;
+                        localDifference = +8;
                     }
-                    else if (m_CheckString(ref l_Date, " i"))
+                    else if (CheckString(ref date, " i"))
                     {
-                        l_LocalDifference = +9;
+                        localDifference = +9;
                     }
-                    else if (m_CheckString(ref l_Date, " k"))
+                    else if (CheckString(ref date, " k"))
                     {
-                        l_LocalDifference = +10;
+                        localDifference = +10;
                     }
-                    else if (m_CheckString(ref l_Date, " l"))
+                    else if (CheckString(ref date, " l"))
                     {
-                        l_LocalDifference = +12;
+                        localDifference = +12;
                     }
-                    else if (m_CheckString(ref l_Date, " m"))
+                    else if (CheckString(ref date, " m"))
                     {
-                        l_LocalDifference = +12;
+                        localDifference = +12;
                     }
-                    else if (m_CheckString(ref l_Date, " n"))
+                    else if (CheckString(ref date, " n"))
                     {
-                        l_LocalDifference = -1;
+                        localDifference = -1;
                     }
-                    else if (m_CheckString(ref l_Date, " o"))
+                    else if (CheckString(ref date, " o"))
                     {
-                        l_LocalDifference = -2;
+                        localDifference = -2;
                     }
-                    else if (m_CheckString(ref l_Date, " p"))
+                    else if (CheckString(ref date, " p"))
                     {
-                        l_LocalDifference = -3;
+                        localDifference = -3;
                     }
-                    else if (m_CheckString(ref l_Date, " q"))
+                    else if (CheckString(ref date, " q"))
                     {
-                        l_LocalDifference = -4;
+                        localDifference = -4;
                     }
-                    else if (m_CheckString(ref l_Date, " r"))
+                    else if (CheckString(ref date, " r"))
                     {
-                        l_LocalDifference = -5;
+                        localDifference = -5;
                     }
-                    else if (m_CheckString(ref l_Date, " s"))
+                    else if (CheckString(ref date, " s"))
                     {
-                        l_LocalDifference = -6;
+                        localDifference = -6;
                     }
-                    else if (m_CheckString(ref l_Date, " t"))
+                    else if (CheckString(ref date, " t"))
                     {
-                        l_LocalDifference = -7;
+                        localDifference = -7;
                     }
-                    else if (m_CheckString(ref l_Date, " u"))
+                    else if (CheckString(ref date, " u"))
                     {
-                        l_LocalDifference = -8;
+                        localDifference = -8;
                     }
-                    else if (m_CheckString(ref l_Date, " v"))
+                    else if (CheckString(ref date, " v"))
                     {
-                        l_LocalDifference = -9;
+                        localDifference = -9;
                     }
-                    else if (m_CheckString(ref l_Date, " w"))
+                    else if (CheckString(ref date, " w"))
                     {
-                        l_LocalDifference = -10;
+                        localDifference = -10;
                     }
-                    else if (m_CheckString(ref l_Date, " x"))
+                    else if (CheckString(ref date, " x"))
                     {
-                        l_LocalDifference = -11;
+                        localDifference = -11;
                     }
-                    else if (m_CheckString(ref l_Date, " y"))
+                    else if (CheckString(ref date, " y"))
                     {
-                        l_LocalDifference = -12;
+                        localDifference = -12;
                     }
                 }
 
-                List<int> values = m_ValueExtractor(l_Date);
-                for (int i = 0; i < values.Count; i++)
+                var values = ValueExtractor(date);
+                for (var i = 0; i < values.Count; i++)
                 {
                     if (values[i] > 1900)
                     {
@@ -381,7 +335,7 @@ namespace Cave.Mail
                     result.Sec = values[3];
                 }
 
-                return new DateTime(result.Year, result.Month, result.Day, result.Hour, result.Min, result.Sec, DateTimeKind.Utc).AddHours(-l_LocalDifference).ToLocalTime();
+                return new DateTime(result.Year, result.Month, result.Day, result.Hour, result.Min, result.Sec, DateTimeKind.Utc).AddHours(-localDifference).ToLocalTime();
             }
             catch (Exception ex)
             {
@@ -400,7 +354,7 @@ namespace Cave.Mail
             {
                 return dateTime.ToString("ddd, dd MMM yyyy HH':'mm':'ss GMT");
             }
-            int localDifference = (int)(100.0 * DateTimeOffset.Now.Offset.TotalHours);
+            var localDifference = (int)(100.0 * DateTimeOffset.Now.Offset.TotalHours);
             if (localDifference > 0)
             {
                 return dateTime.ToString("ddd, dd MMM yyyy HH':'mm':'ss +" + localDifference);

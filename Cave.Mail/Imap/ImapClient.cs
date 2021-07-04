@@ -61,9 +61,9 @@ namespace Cave.Mail.Imap
         /// <summary>The imap new line characters.</summary>
         public const string ImapNewLine = "\r\n";
 
-        int m_Counter = 1;
-        Stream m_Stream;
-        TcpClient m_Client;
+        int counter = 1;
+        Stream stream;
+        TcpClient client;
 
         #region properties        
         /// <summary>Gets the selected mailbox.</summary>
@@ -76,9 +76,9 @@ namespace Cave.Mail.Imap
         {
             get
             {
-                if (m_Client != null)
+                if (client != null)
                 {
-                    return "ImapClient <" + m_Client.Client.RemoteEndPoint + ">";
+                    return "ImapClient <" + client.Client.RemoteEndPoint + ">";
                 }
 
                 return "ImapClient <not connected>";
@@ -89,7 +89,7 @@ namespace Cave.Mail.Imap
         #region private implementation
         ImapAnswer ReadAnswer(string id, bool throwEx)
         {
-            ImapAnswer answer = ImapParser.Parse(id, m_Stream);
+            var answer = ImapParser.Parse(id, stream);
             if (throwEx && !answer.Success)
             {
                 answer.Throw();
@@ -98,34 +98,27 @@ namespace Cave.Mail.Imap
             return answer;
         }
 
-        ImapAnswer SendCommand(string cmd, params object[] parameters)
-        {
-            return SendCommand(string.Format(cmd, parameters));
-        }
+        ImapAnswer SendCommand(string cmd, params object[] parameters) => SendCommand(string.Format(cmd, parameters));
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Literale nicht als lokalisierte Parameter übergeben", MessageId = "Cave.Text.ASCII.GetBytes(System.String)")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Literale nicht als lokalisierte Parameter übergeben", MessageId = "Cave.Text.XT.op_Implicit(System.String)")]
         ImapAnswer SendCommand(string cmd)
         {
-            string id = m_Counter++.ToString("X2");
-            string command = id + " " + cmd;
-            DataWriter writer = new DataWriter(m_Stream);
+            var id = counter++.ToString("X2");
+            var command = id + " " + cmd;
+            var writer = new DataWriter(stream);
             writer.Write(ASCII.GetBytes(command + ImapNewLine));
             writer.Flush();
-            ImapAnswer answer = ReadAnswer(id, true);
+            var answer = ReadAnswer(id, true);
             return answer;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Literale nicht als lokalisierte Parameter übergeben", MessageId = "Cave.Text.ASCII.GetBytes(System.String)")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Literale nicht als lokalisierte Parameter übergeben", MessageId = "Cave.Text.XT.op_Implicit(System.String)")]
         string PrepareLiteralDataCommand(string cmd)
         {
-            string id = m_Counter++.ToString("X2");
-            string command = id + " " + cmd;
-            DataWriter writer = new DataWriter(m_Stream);
+            var id = counter++.ToString("X2");
+            var command = id + " " + cmd;
+            var writer = new DataWriter(stream);
             writer.Write(ASCII.GetBytes(command + ImapNewLine));
             writer.Flush();
-            ImapAnswer answer = ReadAnswer("+", false);
+            var answer = ReadAnswer("+", false);
             if (!answer.Result.ToUpperInvariant().StartsWith("+ READY"))
             {
                 answer.Throw();
@@ -154,10 +147,7 @@ namespace Cave.Mail.Imap
         #region public implementation
         /// <summary>Does a Logon with SSL.</summary>
         /// <param name="con">The connection string.</param>
-        public void LoginSSL(ConnectionString con)
-        {
-            LoginSSL(con.UserName, con.Password, con.Server, con.GetPort(993));
-        }
+        public void LoginSSL(ConnectionString con) => LoginSSL(con.UserName, con.Password, con.Server, con.GetPort(993));
 
         /// <summary>Does a Logon with SSL.</summary>
         /// <param name="user">The user.</param>
@@ -166,10 +156,10 @@ namespace Cave.Mail.Imap
         /// <param name="port">The port.</param>
         public void LoginSSL(string user, string password, string server, int port = 993)
         {
-            SslClient sslClient = new SslClient();
+            var sslClient = new SslClient();
             sslClient.Connect(server, port);
             sslClient.DoClientTLS(server);
-            m_Stream = sslClient.Stream;
+            stream = sslClient.Stream;
             Login(user, password);
         }
 
@@ -177,14 +167,14 @@ namespace Cave.Mail.Imap
         /// <returns></returns>
         public string[] ListMailboxes()
         {
-            List<string> list = new List<string>();
-            ImapAnswer answer = SendCommand("LIST \"\" *");
-            foreach (string line in answer.GetDataLines())
+            var list = new List<string>();
+            var answer = SendCommand("LIST \"\" *");
+            foreach (var line in answer.GetDataLines())
             {
                 if (line.StartsWith("* LIST "))
                 {
-                    string[] parts = ImapParser.SplitAnswer(line);
-                    string mailbox = parts[4].UnboxText(false);
+                    var parts = ImapParser.SplitAnswer(line);
+                    var mailbox = parts[4].UnboxText(false);
                     mailbox = UTF7.DecodeExtendedUTF7(mailbox);
                     list.Add(mailbox);
                 }
@@ -194,10 +184,7 @@ namespace Cave.Mail.Imap
 
         /// <summary>Creates a new mailbox.</summary>
         /// <param name="mailbox">The mailbox.</param>
-        public void CreateMailbox(string mailbox)
-        {
-            SendCommand("CREATE \"{0}\"", mailbox);
-        }
+        public void CreateMailbox(string mailbox) => SendCommand("CREATE \"{0}\"", mailbox);
 
         /// <summary>Selects the mailbox with the specified name.</summary>
         /// <param name="mailboxName">Name of the mailbox.</param>
@@ -205,8 +192,8 @@ namespace Cave.Mail.Imap
         /// <exception cref="System.Exception"></exception>
         public ImapMailboxInfo Select(string mailboxName)
         {
-            string mailbox = UTF7.EncodeExtendedUTF7(mailboxName);
-            ImapAnswer answer = SendCommand("SELECT \"{0}\"", mailbox);
+            var mailbox = UTF7.EncodeExtendedUTF7(mailboxName);
+            var answer = SendCommand("SELECT \"{0}\"", mailbox);
             if (!answer.Success)
             {
                 throw new Exception(string.Format("Error at select mailbox {0}: {1}", mailboxName, answer.Result));
@@ -222,8 +209,8 @@ namespace Cave.Mail.Imap
         /// <exception cref="System.Exception"></exception>
         public ImapMailboxInfo Examine(string mailboxName)
         {
-            string mailbox = UTF7.EncodeExtendedUTF7(mailboxName);
-            ImapAnswer answer = SendCommand("EXAMINE \"" + mailbox + "\"");
+            var mailbox = UTF7.EncodeExtendedUTF7(mailboxName);
+            var answer = SendCommand("EXAMINE \"" + mailbox + "\"");
             if (!answer.Success)
             {
                 throw new Exception(string.Format("Error at examine mailbox {0}: {1}", mailboxName, answer.Result));
@@ -243,12 +230,12 @@ namespace Cave.Mail.Imap
                 throw new ArgumentOutOfRangeException(nameof(number));
             }
 
-            ImapAnswer answer = SendCommand("FETCH " + number + " BODY[]");
-            int start = Array.IndexOf(answer.Data, (byte)'\n') + 1;
-            int end = Array.LastIndexOf(answer.Data, (byte)')');
-            byte[] l_Message = new byte[end - start];
-            Array.Copy(answer.Data, start, l_Message, 0, end - start);
-            return l_Message;
+            var answer = SendCommand("FETCH " + number + " BODY[]");
+            var start = Array.IndexOf(answer.Data, (byte)'\n') + 1;
+            var end = Array.LastIndexOf(answer.Data, (byte)')');
+            var message = new byte[end - start];
+            Array.Copy(answer.Data, start, message, 0, end - start);
+            return message;
         }
 
         /// <summary>Retrieves a message by its internal number (1..<see cref="ImapMailboxInfo.Exist" />).</summary>
@@ -262,12 +249,12 @@ namespace Cave.Mail.Imap
                 throw new ArgumentOutOfRangeException(nameof(number));
             }
 
-            ImapAnswer answer = SendCommand("FETCH " + number + " BODY[]");
-            int start = Array.IndexOf(answer.Data, (byte)'\n') + 1;
-            int end = Array.LastIndexOf(answer.Data, (byte)')') - 2;
-            byte[] l_Message = new byte[end - start];
-            Array.Copy(answer.Data, start, l_Message, 0, end - start);
-            return Rfc822Message.FromBinary(l_Message);
+            var answer = SendCommand("FETCH " + number + " BODY[]");
+            var start = Array.IndexOf(answer.Data, (byte)'\n') + 1;
+            var end = Array.LastIndexOf(answer.Data, (byte)')') - 2;
+            var message = new byte[end - start];
+            Array.Copy(answer.Data, start, message, 0, end - start);
+            return Rfc822Message.FromBinary(message);
         }
 
         /// <summary>Retrieves a message header by its internal number (1..<see cref="ImapMailboxInfo.Exist" />).</summary>
@@ -284,24 +271,24 @@ namespace Cave.Mail.Imap
 
             while (true)
             {
-                ImapAnswer answer = SendCommand("FETCH " + number + " BODY[HEADER]");
+                var answer = SendCommand("FETCH " + number + " BODY[HEADER]");
                 if (answer.Data.Length == 0)
                 {
                     continue;
                 }
 
-                StreamReader streamReader = answer.GetStreamReader(0);
-                string header = streamReader.ReadLine();
-                int size = int.Parse(header.Substring(header.LastIndexOf('{')).Unbox("{", "}", true));
-                DataReader dataReader = answer.GetDataReader(header.Length + 2);
-                byte[] l_MessageData = dataReader.ReadBytes(size);
-                if (l_MessageData.Length != size)
+                var streamReader = answer.GetStreamReader(0);
+                var header = streamReader.ReadLine();
+                var size = int.Parse(header.Substring(header.LastIndexOf('{')).Unbox("{", "}", true));
+                var dataReader = answer.GetDataReader(header.Length + 2);
+                var messageData = dataReader.ReadBytes(size);
+                if (messageData.Length != size)
                 {
                     throw new FormatException();
                 }
 
-                Rfc822Message l_Message = Rfc822Message.FromBinary(l_MessageData);
-                return l_Message;
+                var message = Rfc822Message.FromBinary(messageData);
+                return message;
             }
         }
 
@@ -311,14 +298,14 @@ namespace Cave.Mail.Imap
         /// <exception cref="System.ArgumentNullException">messageData.</exception>
         public void UploadMessageData(string mailboxName, byte[] messageData)
         {
-            string mailbox = UTF7.EncodeExtendedUTF7(mailboxName);
+            var mailbox = UTF7.EncodeExtendedUTF7(mailboxName);
             if (messageData == null)
             {
-                throw new ArgumentNullException("messageData");
+                throw new ArgumentNullException(nameof(messageData));
             }
 
-            string id = PrepareLiteralDataCommand("APPEND \"" + mailbox + "\" (\\Seen) {" + messageData.Length + "}");
-            DataWriter writer = new DataWriter(m_Stream);
+            var id = PrepareLiteralDataCommand("APPEND \"" + mailbox + "\" (\\Seen) {" + messageData.Length + "}");
+            var writer = new DataWriter(stream);
             writer.Write(messageData);
             writer.Write((byte)13);
             writer.Write((byte)10);
@@ -332,20 +319,19 @@ namespace Cave.Mail.Imap
         /// <exception cref="System.Exception"></exception>
         public ImapNumberSequence Search(ImapSearch search)
         {
-            ImapAnswer answer = SendCommand("SEARCH {0}", search);
+            var answer = SendCommand("SEARCH {0}", search);
             if (!answer.Success)
             {
                 throw new Exception(string.Format("Error at search {0}", search));
             }
 
-            ImapNumberSequence sequence = new ImapNumberSequence();
-            foreach (string line in answer.GetDataLines())
+            var sequence = new ImapNumberSequence();
+            foreach (var line in answer.GetDataLines())
             {
                 if (line.StartsWith("* SEARCH "))
                 {
-                    string s = line.Substring(9);
-                    int value;
-                    if (int.TryParse(s, out value))
+                    var s = line.Substring(9);
+                    if (int.TryParse(s, out var value))
                     {
                         sequence += ImapNumberSequence.CreateList(value);
                     }
@@ -364,7 +350,7 @@ namespace Cave.Mail.Imap
         /// <exception cref="Exception">Error at store flags.</exception>
         public void SetFlags(int number, params string[] flags)
         {
-            ImapAnswer answer = SendCommand("STORE {0} +FLAGS ({1})", number, string.Join(" ", flags));
+            var answer = SendCommand("STORE {0} +FLAGS ({1})", number, string.Join(" ", flags));
             if (!answer.Success)
             {
                 throw new Exception("Error at store flags");
@@ -375,7 +361,7 @@ namespace Cave.Mail.Imap
         /// <exception cref="Exception">Error at store flags.</exception>
         public void Expunge()
         {
-            ImapAnswer answer = SendCommand("EXPUNGE");
+            var answer = SendCommand("EXPUNGE");
             if (!answer.Success)
             {
                 throw new Exception("Error at store flags");
@@ -385,8 +371,8 @@ namespace Cave.Mail.Imap
         /// <summary>Closes this instance.</summary>
         public void Close()
         {
-            m_Stream?.Close();
-            m_Client?.Close();
+            stream?.Close();
+            client?.Close();
             Dispose();
         }
         #endregion
@@ -399,14 +385,14 @@ namespace Cave.Mail.Imap
         {
             if (disposing)
             {
-                if (m_Client is IDisposable dispo)
+                if (client is IDisposable dispo)
                 {
                     dispo.Dispose();
                 }
 
-                m_Client = null;
-                m_Stream?.Dispose();
-                m_Stream = null; 
+                client = null;
+                stream?.Dispose();
+                stream = null; 
             }
         }
 

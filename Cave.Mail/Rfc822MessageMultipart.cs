@@ -1,49 +1,3 @@
-#region CopyRight 2018
-/*
-    Copyright (c) 2007-2018 Andreas Rohleder (andreas@rohleder.cc)
-    All rights reserved
-*/
-#endregion
-#region License LGPL-3
-/*
-    This program/library/sourcecode is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public License
-    version 3 as published by the Free Software Foundation subsequent called
-    the License.
-
-    You may not use this program/library/sourcecode except in compliance
-    with the License. The License is included in the LICENSE file
-    found at the installation directory or the distribution package.
-
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this software and associated documentation files (the
-    "Software"), to deal in the Software without restriction, including
-    without limitation the rights to use, copy, modify, merge, publish,
-    distribute, sublicense, and/or sell copies of the Software, and to
-    permit persons to whom the Software is furnished to do so, subject to
-    the following conditions:
-
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-#endregion
-#region Authors & Contributors
-/*
-   Author:
-     Andreas Rohleder <andreas@rohleder.cc>
-
-   Contributors:
- */
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Net.Mime;
@@ -56,16 +10,16 @@ namespace Cave.Mail
     public class Rfc822MessageMultipart : IEnumerable<Rfc822Message>
     {
         #region private functionality
-        readonly List<Rfc822Message> m_Parts;
+        readonly List<Rfc822Message> Parts;
 
         /// <summary>
         /// Gets the <see cref="ContentTypes"/> in this multipart message. This does not traverse into nested multiparts !.
         /// </summary>
         /// <returns></returns>
-        List<ContentType> m_GetContentTypes()
+        List<ContentType> GetContentTypes()
         {
-            List<ContentType> result = new List<ContentType>();
-            foreach (Rfc822Message part in m_Parts)
+            var result = new List<ContentType>();
+            foreach (var part in Parts)
             {
                 result.Add(part.ContentType);
             }
@@ -73,22 +27,19 @@ namespace Cave.Mail
         }
         #endregion
 
-        internal Rfc822MessageMultipart(List<Rfc822Message> items)
-        {
-            m_Parts = items;
-        }
+        internal Rfc822MessageMultipart(List<Rfc822Message> items) => Parts = items;
 
         /// <summary>
         /// Obtains the number of parts.
         /// </summary>
-        public int Count => m_Parts.Count;
+        public int Count => Parts.Count;
 
         /// <summary>
         /// Obtains whether the message contains at least one plain text part.
         /// </summary>
         public bool HasPart(string mediaType)
         {
-            foreach (Rfc822Message part in m_Parts)
+            foreach (var part in Parts)
             {
                 if (part.HasPart(mediaType))
                 {
@@ -104,7 +55,7 @@ namespace Cave.Mail
         /// <returns></returns>
         public Rfc822Message GetPart(string mediaType)
         {
-            foreach (Rfc822Message part in m_Parts)
+            foreach (var part in Parts)
             {
                 if (part.HasPart(mediaType))
                 {
@@ -117,7 +68,7 @@ namespace Cave.Mail
         /// <summary>
         /// Obtains all <see cref="ContentType"/>s found. This does not traverse into nested multiparts !.
         /// </summary>
-        public ContentType[] ContentTypes => m_GetContentTypes().ToArray();
+        public ContentType[] ContentTypes => GetContentTypes().ToArray();
 
         /// <summary>
         /// Obtains the part with the specified <see cref="ContentType"/>. This does not traverse into nested multiparts !.
@@ -130,7 +81,7 @@ namespace Cave.Mail
             {
                 if (contentType == null)
                 {
-                    throw new ArgumentNullException("contentType");
+                    throw new ArgumentNullException(nameof(contentType));
                 }
 
                 return this[contentType.MediaType];
@@ -148,11 +99,11 @@ namespace Cave.Mail
             get
             {
                 mediaType = mediaType.GetValidChars("abcdefghijklmnopqrstuvwxyz/");
-                ContentType[] contentTypes = ContentTypes;
-                for (int i = 0; i < contentTypes.Length; i++)
+                var contentTypes = ContentTypes;
+                for (var i = 0; i < contentTypes.Length; i++)
                 {
-                    string l_MediaType = contentTypes[i].MediaType.ToUpperInvariant().GetValidChars("abcdefghijklmnopqrstuvwxyz/");
-                    if (l_MediaType == mediaType)
+                    var other = contentTypes[i].MediaType.ToUpperInvariant().GetValidChars("abcdefghijklmnopqrstuvwxyz/");
+                    if (mediaType == other)
                     {
                         return this[i];
                     }
@@ -166,13 +117,7 @@ namespace Cave.Mail
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public Rfc822Message this[int index]
-        {
-            get
-            {
-                return m_Parts[index];
-            }
-        }
+        public Rfc822Message this[int index] => Parts[index];
 
         #region IEnumerable<Rfc822Message> Member
 
@@ -180,10 +125,7 @@ namespace Cave.Mail
         /// Obtains a Rfc822Message enumerator for all parts.
         /// </summary>
         /// <returns></returns>
-        public IEnumerator<Rfc822Message> GetEnumerator()
-        {
-            return m_Parts.GetEnumerator();
-        }
+        public IEnumerator<Rfc822Message> GetEnumerator() => Parts.GetEnumerator();
 
         #endregion
 
@@ -193,10 +135,7 @@ namespace Cave.Mail
         /// Obtains a Rfc822Message enumerator for all parts.
         /// </summary>
         /// <returns></returns>
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return m_Parts.GetEnumerator();
-        }
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => Parts.GetEnumerator();
 
         #endregion
     }

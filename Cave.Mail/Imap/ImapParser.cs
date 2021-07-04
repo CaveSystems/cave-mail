@@ -9,39 +9,39 @@ namespace Cave.Mail.Imap
     {
         public static string[] SplitAnswer(string answer)
         {
-            List<string> parts = new List<string>();
-            Stack<char> l_Stack = new Stack<char>();
-            int start = 0;
-            for (int i = 0; i < answer.Length; i++)
+            var parts = new List<string>();
+            var stack = new Stack<char>();
+            var start = 0;
+            for (var i = 0; i < answer.Length; i++)
             {
-                char c = answer[i];
+                var c = answer[i];
                 switch (c)
                 {
                     case '\'':
                     case '"':
-                        if ((l_Stack.Count > 0) && (l_Stack.Peek() == c))
+                        if ((stack.Count > 0) && (stack.Peek() == c))
                         {
-                            l_Stack.Pop();
+                            stack.Pop();
                         }
                         else
                         {
-                            l_Stack.Push(c);
+                            stack.Push(c);
                         }
                         break;
 
-                    case ')': if (l_Stack.Pop() != '(') { throw new FormatException(); } break;
-                    case '}': if (l_Stack.Pop() != '{') { throw new FormatException(); } break;
-                    case ']': if (l_Stack.Pop() != '[') { throw new FormatException(); } break;
-                    case '>': if (l_Stack.Pop() != '<') { throw new FormatException(); } break;
+                    case ')': if (stack.Pop() != '(') { throw new FormatException(); } break;
+                    case '}': if (stack.Pop() != '{') { throw new FormatException(); } break;
+                    case ']': if (stack.Pop() != '[') { throw new FormatException(); } break;
+                    case '>': if (stack.Pop() != '<') { throw new FormatException(); } break;
 
                     case '(':
                     case '{':
                     case '[':
                     case '<':
-                        l_Stack.Push(c);
+                        stack.Push(c);
                         break;
                     case ' ':
-                        if (l_Stack.Count == 0)
+                        if (stack.Count == 0)
                         {
                             parts.Add(answer.Substring(start, i - start));
                             start = i + 1;
@@ -59,16 +59,16 @@ namespace Cave.Mail.Imap
 
         public static ImapAnswer Parse(string id, Stream stream)
         {
-            ImapAnswer answer = new ImapAnswer
+            var answer = new ImapAnswer
             {
                 ID = id
             };
 
-            FifoStream m_Buffer = new FifoStream();
-            List<byte> current = new List<byte>(80);
+            var buffer = new FifoStream();
+            var current = new List<byte>(80);
             while (true)
             {
-                int b = stream.ReadByte();
+                var b = stream.ReadByte();
                 if (b < 0)
                 {
                     throw new EndOfStreamException();
@@ -77,19 +77,19 @@ namespace Cave.Mail.Imap
                 current.Add((byte)b);
                 if (b == '\n')
                 {
-                    byte[] line = current.ToArray();
-                    string str = ASCII.GetString(line);
+                    var line = current.ToArray();
+                    var str = ASCII.GetString(line);
                     if (str.StartsWith(answer.ID + " "))
                     {
                         answer.Result = str;
                         break;
                     }
-                    m_Buffer.AppendBuffer(line, 0, line.Length);
+                    buffer.AppendBuffer(line, 0, line.Length);
                     current.Clear();
                 }
             }
 
-            answer.Data = m_Buffer.ToArray();
+            answer.Data = buffer.ToArray();
             return answer;
         }
     }

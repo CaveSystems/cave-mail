@@ -21,51 +21,41 @@ namespace Cave.Mail
         /// Provides a new boundary string for multipart messages (the current boundary can be obtained via <see cref="ContentType"/>).
         /// </summary>
         /// <returns></returns>
-        public static string CreateBoundary()
-        {
-            return "_" + Rfc2047.GetRandomPrintableString(38) + "_";
-        }
+        public static string CreateBoundary() => "_" + Rfc2047.GetRandomPrintableString(38) + "_";
 
         /// <summary>
         /// Reads a <see cref="Rfc822Message"/> from the specified binary data.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static Rfc822Message FromBinary(byte[] data)
-        {
-            return new Rfc822Message(data);
-        }
+        public static Rfc822Message FromBinary(byte[] data) => new(data);
 
         /// <summary>
         /// Reads a <see cref="Rfc822Message"/> from the specified file.
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public static Rfc822Message FromFile(string fileName)
-        {
-            return new Rfc822Message(File.ReadAllBytes(fileName));
-        }
+        public static Rfc822Message FromFile(string fileName) => new(File.ReadAllBytes(fileName));
 
-        int m_StartOfBody = 0;
-        byte[] m_Body = null;
-        NameValueCollection m_Header = new NameValueCollection();
-        List<Rfc822Message> m_Parts = new List<Rfc822Message>();
-        bool ro;
+        int startOfBody = 0;
+        byte[] body = null;
+        readonly NameValueCollection HeaderCollection = new();
+        readonly List<Rfc822Message> Parts = new();
+        readonly bool IsReadOnly;
 
         /// <summary>
         /// Parses rfc822 data and fills the internal structures.
         /// </summary>
         /// <param name="data"></param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Literale nicht als lokalisierte Parameter übergeben", MessageId = "Cave.Net.Mail.Rfc822Content.Encode(System.Net.Mime.TransferEncoding,System.Text.Encoding,System.String)")]
-        protected void m_Parse(byte[] data)
+        protected void Parse(byte[] data)
         {
             //reset
-            m_Parts.Clear();
-            m_Header.Clear();
+            Parts.Clear();
+            HeaderCollection.Clear();
             //create reader
-            Rfc822Reader reader = new Rfc822Reader(data);
+            var reader = new Rfc822Reader(data);
             //read header
-            string line = Rfc2047.Decode(reader.ReadLine());
+            var line = Rfc2047.Decode(reader.ReadLine());
             //find first line
             while (string.IsNullOrEmpty(line))
             {
@@ -74,7 +64,7 @@ namespace Cave.Mail
             //read header
             while (!string.IsNullOrEmpty(line))
             {
-                string header = line;
+                var header = line;
                 line = reader.ReadLine();
                 //add folded content to current line
                 while ((line != null) && (line.StartsWith(" ") || line.StartsWith("\t")))
@@ -83,15 +73,15 @@ namespace Cave.Mail
                     line = reader.ReadLine();
                 }
                 //split "key: value" pair
-                int splitPos = header.IndexOf(':');
+                var splitPos = header.IndexOf(':');
                 if (splitPos < 0)
                 {
                     break;
                 }
 
-                string headerKey = header.Substring(0, splitPos);
+                var headerKey = header.Substring(0, splitPos);
                 splitPos += 2;
-                string headerVal = (splitPos >= header.Length) ? "" : header.Substring(splitPos);
+                var headerVal = (splitPos >= header.Length) ? "" : header.Substring(splitPos);
                 try
                 {
                     Rfc2047.Decode(headerVal);
@@ -102,22 +92,22 @@ namespace Cave.Mail
                     Trace.WriteLine($"Invalid header {headerKey}\n{ex}");
                 }
                 //add "key: value" pair to header
-                m_Header.Add(headerKey, headerVal);
+                this.HeaderCollection.Add(headerKey, headerVal);
             }
             //get body start position
-            m_StartOfBody = reader.Position;
+            startOfBody = reader.Position;
             //multipart message ?
             if (!IsMultipart)
             {
                 //no, single part
-                m_Body = reader.ReadToEndData();
+                body = reader.ReadToEndData();
             }
             else
             {
                 //yes, multipart, get boundary
                 MultiPartBoundary = "--" + ContentType.Boundary;
                 //load body content without multiparts
-                int endOfPart = reader.Position;
+                var endOfPart = reader.Position;
                 line = reader.ReadLine();
                 while (line != null)
                 {
@@ -130,17 +120,17 @@ namespace Cave.Mail
                     line = reader.ReadLine();
                 }
                 //decode part
-                m_Body = reader.Extract(m_StartOfBody, endOfPart - m_StartOfBody);
+                body = reader.Extract(startOfBody, endOfPart - startOfBody);
 
                 //index start of current read part
-                int startOfPart = reader.Position;
+                var startOfPart = reader.Position;
                 //current read position (needed because multipart boundary does not belong to part content)
-                int currentPosition = startOfPart;
+                var currentPosition = startOfPart;
                 //load parts
                 line = reader.ReadLine();
 
-                NameValueCollection contentHeader = new NameValueCollection(m_Header);
-                bool inHeader = true;
+                var contentHeader = new NameValueCollection(HeaderCollection);
+                var inHeader = true;
                 while (line != null)
                 {
                     if (line == "." || line == "")
@@ -149,7 +139,7 @@ namespace Cave.Mail
                     }
                     else if (inHeader)
                     {
-                        string[] parts = line.Split(new char[] { ':' }, 2);
+                        var parts = line.Split(new char[] { ':' }, 2);
                         if (parts.Length != 2)
                         {
                             inHeader = false;
@@ -163,12 +153,12 @@ namespace Cave.Mail
                     if (line.StartsWith(MultiPartBoundary))
                     {
                         //yes, get data of part as new buffer
-                        byte[] buffer = reader.Extract(startOfPart, currentPosition - startOfPart);
+                        var buffer = reader.Extract(startOfPart, currentPosition - startOfPart);
                         //decode part
-                        m_Parts.Add(new Rfc822Message(contentHeader, buffer));
+                        Parts.Add(new Rfc822Message(contentHeader, buffer));
                         //set next start position
                         startOfPart = reader.Position;
-                        contentHeader = new NameValueCollection(m_Header);
+                        contentHeader = new NameValueCollection(HeaderCollection);
                         inHeader = true;
                     }
                     currentPosition = reader.Position;
@@ -178,22 +168,20 @@ namespace Cave.Mail
                 if (currentPosition > startOfPart + 3)
                 {
                     //yes, get data of part as new buffer
-                    byte[] buffer = reader.Extract(startOfPart, currentPosition - startOfPart);
+                    var buffer = reader.Extract(startOfPart, currentPosition - startOfPart);
                     //decode part
-                    m_Parts.Add(new Rfc822Message(contentHeader, buffer));
+                    Parts.Add(new Rfc822Message(contentHeader, buffer));
                 }
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Literale nicht als lokalisierte Parameter übergeben", MessageId = "Cave.IO.DataWriter.WriteLine(System.String)")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Literale nicht als lokalisierte Parameter übergeben", MessageId = "Cave.IO.DataWriter.WriteString(System.String,System.Boolean)")]
-        void m_Save(DataWriter writer)
+        void Save(DataWriter writer)
         {
             //write header
-            foreach (string key in m_Header.Keys)
+            foreach (string key in HeaderCollection.Keys)
             {
-                string[] values = GetHeaders(key);
-                foreach (string value in values)
+                var values = GetHeaders(key);
+                foreach (var value in values)
                 {
                     writer.Write(key);
                     writer.Write(": ");
@@ -203,7 +191,7 @@ namespace Cave.Mail
                     }
                     else
                     {
-                        string str = Rfc2047.Encode(TransferEncoding.QuotedPrintable, Encoding.UTF8, value);
+                        var str = Rfc2047.Encode(TransferEncoding.QuotedPrintable, Encoding.UTF8, value);
                         writer.WriteLine(str);
                     }
                 }
@@ -211,19 +199,19 @@ namespace Cave.Mail
             if (!IsMultipart)
             {
                 writer.WriteLine();
-                writer.Write(m_Body);
+                writer.Write(body);
             }
             else
             {
                 //write main body
-                writer.Write(m_Body);
+                writer.Write(body);
                 //write additional parts
-                string boundary = "--" + ContentType.Boundary;
-                foreach (Rfc822Message part in Multipart)
+                var boundary = "--" + ContentType.Boundary;
+                foreach (var part in Multipart)
                 {
                     writer.WriteLine();
                     writer.WriteLine(boundary);
-                    part.m_Save(writer);
+                    part.Save(writer);
                 }
                 writer.WriteLine("--");
             }
@@ -235,24 +223,19 @@ namespace Cave.Mail
         /// <param name="fileName"></param>
         public void Save(string fileName)
         {
-            using (Stream stream = File.Create(fileName))
-            {
-                DataWriter writer = new DataWriter(stream);
-                m_Save(writer);
-                writer.Close();
-            }
+            using Stream stream = File.Create(fileName);
+            var writer = new DataWriter(stream);
+            Save(writer);
+            writer.Close();
         }
 
-        private Rfc822Message(byte[] data)
-        {
-            m_Parse(data);
-        }
+        private Rfc822Message(byte[] data) => Parse(data);
 
         private Rfc822Message(NameValueCollection header, byte[] data)
         {
-            m_Parse(data);
-            m_Header = header;
-            ro = true;
+            Parse(data);
+            this.HeaderCollection = header;
+            IsReadOnly = true;
         }
 
         /// <summary>
@@ -264,7 +247,7 @@ namespace Cave.Mail
             {
                 try
                 {
-                    string charSet = ContentType.CharSet;
+                    var charSet = ContentType.CharSet;
                     if (string.IsNullOrEmpty(charSet))
                     {
                         return Encoding.GetEncoding("iso-8859-1");
@@ -286,7 +269,7 @@ namespace Cave.Mail
         /// <returns></returns>
         public string GetFirstHeader(string key)
         {
-            string result = m_Header[key];
+            var result = HeaderCollection[key];
             if (result == null)
             {
                 return "";
@@ -300,10 +283,7 @@ namespace Cave.Mail
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public string[] GetHeaders(string key)
-        {
-            return m_Header.GetValues(key);
-        }
+        public string[] GetHeaders(string key) => HeaderCollection.GetValues(key);
 
         /// <summary>
         /// Obtains a copy of all header lines.
@@ -312,11 +292,11 @@ namespace Cave.Mail
         {
             get
             {
-                string[] result = new string[m_Header.Count];
-                int i = 0;
-                foreach (string key in m_Header.Keys)
+                var result = new string[HeaderCollection.Count];
+                var i = 0;
+                foreach (string key in HeaderCollection.Keys)
                 {
-                    result[i++] = key + ": " + m_Header[key];
+                    result[i++] = key + ": " + HeaderCollection[key];
                 }
                 return result;
             }
@@ -330,12 +310,12 @@ namespace Cave.Mail
             get => Rfc2047.DecodeMailAddress(GetFirstHeader("From"));
             set
             {
-                if (ro)
+                if (IsReadOnly)
                 {
                     throw new ReadOnlyException();
                 }
 
-                m_Header["From"] = Rfc2047.EncodeMailAddress(TransferEncoding.QuotedPrintable, Encoding, value);
+                HeaderCollection["From"] = Rfc2047.EncodeMailAddress(TransferEncoding.QuotedPrintable, Encoding, value);
             }
         }
 
@@ -347,12 +327,12 @@ namespace Cave.Mail
             get => Rfc2047.DecodeMailAddress(GetFirstHeader("Delivered-To"));
             set
             {
-                if (ro)
+                if (IsReadOnly)
                 {
                     throw new ReadOnlyException();
                 }
 
-                m_Header["Delivered-To"] = Rfc2047.EncodeMailAddress(TransferEncoding.QuotedPrintable, Encoding, value);
+                HeaderCollection["Delivered-To"] = Rfc2047.EncodeMailAddress(TransferEncoding.QuotedPrintable, Encoding, value);
             }
         }
 
@@ -364,12 +344,12 @@ namespace Cave.Mail
             get => Rfc2047.DecodeMailAddress(GetFirstHeader("Message-ID"));
             set
             {
-                if (ro)
+                if (IsReadOnly)
                 {
                     throw new ReadOnlyException();
                 }
 
-                m_Header["Message-ID"] = Rfc2047.EncodeMailAddress(TransferEncoding.QuotedPrintable, Encoding, value);
+                HeaderCollection["Message-ID"] = Rfc2047.EncodeMailAddress(TransferEncoding.QuotedPrintable, Encoding, value);
             }
         }
 
@@ -381,12 +361,12 @@ namespace Cave.Mail
             get => Rfc2047.DecodeMailAddress(GetFirstHeader("Return-Path"));
             set
             {
-                if (ro)
+                if (IsReadOnly)
                 {
                     throw new ReadOnlyException();
                 }
 
-                m_Header["Return-Path"] = Rfc2047.EncodeMailAddress(TransferEncoding.QuotedPrintable, Encoding, value);
+                HeaderCollection["Return-Path"] = Rfc2047.EncodeMailAddress(TransferEncoding.QuotedPrintable, Encoding, value);
             }
         }
 
@@ -398,17 +378,17 @@ namespace Cave.Mail
             get { try { return new Version(GetFirstHeader("MIME-Version")); } catch { return new Version("1.0"); } }
             set
             {
-                if (ro)
+                if (IsReadOnly)
                 {
                     throw new ReadOnlyException();
                 }
 
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 }
 
-                m_Header["MIME-Version"] = value.Major.ToString() + "." + value.Minor.ToString();
+                HeaderCollection["MIME-Version"] = value.Major.ToString() + "." + value.Minor.ToString();
             }
         }
 
@@ -420,29 +400,29 @@ namespace Cave.Mail
             get => Rfc2047.Decode(GetFirstHeader("Subject"));
             set
             {
-                if (ro)
+                if (IsReadOnly)
                 {
                     throw new ReadOnlyException();
                 }
 
-                m_Header["Subject"] = Rfc2047.Encode(TransferEncoding.QuotedPrintable, Encoding, value);
+                HeaderCollection["Subject"] = Rfc2047.Encode(TransferEncoding.QuotedPrintable, Encoding, value);
             }
         }
 
         /// <summary>
         /// Accesses the 'To:' Header field.
         /// </summary>
-        public Rfc822AddressCollection To { get { try { return new Rfc822AddressCollection("To", m_Header, Encoding); } catch { return null; } } }
+        public Rfc822AddressCollection To { get { try { return new Rfc822AddressCollection("To", HeaderCollection, Encoding); } catch { return null; } } }
 
         /// <summary>
         /// Accesses the 'Cc:' Header field (CarbonCopy).
         /// </summary>
-        public Rfc822AddressCollection Cc => new Rfc822AddressCollection("Cc", m_Header, Encoding);
+        public Rfc822AddressCollection Cc => new("Cc", HeaderCollection, Encoding);
 
         /// <summary>
         /// Accesses the 'Bcc:' Header field (BlindCarbonCopy).
         /// </summary>
-        public Rfc822AddressCollection Bcc => new Rfc822AddressCollection("Bcc", m_Header, Encoding);
+        public Rfc822AddressCollection Bcc => new("Bcc", HeaderCollection, Encoding);
 
         /// <summary>
         /// Accesses the 'Date:' Header field.
@@ -452,12 +432,12 @@ namespace Cave.Mail
             get => Rfc822DateTime.Decode(GetFirstHeader("Date"));
             set
             {
-                if (ro)
+                if (IsReadOnly)
                 {
                     throw new ReadOnlyException();
                 }
 
-                m_Header["Date"] = Rfc822DateTime.Encode(value);
+                HeaderCollection["Date"] = Rfc822DateTime.Encode(value);
             }
         }
 
@@ -468,13 +448,13 @@ namespace Cave.Mail
         {
             get
             {
-                ContentType contentType = new ContentType
+                var contentType = new ContentType
                 {
                     MediaType = "text/plain",
                     CharSet = "iso-8859-1",
                     Name = ""
                 };
-                string contentTypeString = m_Header["Content-Type"];
+                var contentTypeString = HeaderCollection["Content-Type"];
                 if (contentTypeString == null)
                 {
                     return contentType;
@@ -482,14 +462,14 @@ namespace Cave.Mail
 
                 try
                 {
-                    string[] parts = contentTypeString.Split(';');
+                    var parts = contentTypeString.Split(';');
                     try { contentType.MediaType = parts[0].Trim().UnboxText(false).ToLower().Replace(" ", ""); }
                     catch { }
-                    foreach (string part in parts)
+                    foreach (var part in parts)
                     {
-                        string name = part.Trim().ToLower();
-                        string value = "";
-                        int index = part.IndexOf('=');
+                        var name = part.Trim().ToLower();
+                        var value = "";
+                        var index = part.IndexOf('=');
                         if (index < 0)
                         {
                             continue;
@@ -521,41 +501,41 @@ namespace Cave.Mail
             get
             {
                 //load transfer encoding
-                string l_TransferEncoding = m_Header["Content-Transfer-Encoding"];
-                if (l_TransferEncoding == null)
+                var transferEncoding = HeaderCollection["Content-Transfer-Encoding"];
+                if (transferEncoding == null)
                 {
                     return TransferEncoding.Unknown;
                 }
 
-                switch (l_TransferEncoding.ToUpperInvariant())
+                return transferEncoding.ToUpperInvariant() switch
                 {
-                    case "QUOTED-PRINTABLE": return TransferEncoding.QuotedPrintable;
-                    case "BASE64": return TransferEncoding.Base64;
-                    case "7BIT": return TransferEncoding.SevenBit;
-                    default: return TransferEncoding.Unknown;
-                }
+                    "QUOTED-PRINTABLE" => TransferEncoding.QuotedPrintable,
+                    "BASE64" => TransferEncoding.Base64,
+                    "7BIT" => TransferEncoding.SevenBit,
+                    _ => TransferEncoding.Unknown,
+                };
             }
         }
 
         /// <summary>
         /// Obtains whether the message looks valid or not.
         /// </summary>
-        public bool IsValid => (m_Header["From"] != null) && (m_Header["To"] != null) && (m_Header["Subject"] != null) && HasPlainTextPart;
+        public bool IsValid => (HeaderCollection["From"] != null) && (HeaderCollection["To"] != null) && (HeaderCollection["Subject"] != null) && HasPlainTextPart;
 
         /// <summary>
         /// Gets / sets the content of the message.
         /// </summary>
         public string Content
         {
-            get { try { return Rfc2047.DecodeText(TransferEncoding, Encoding, m_Body); } catch { return Encoding.GetString(m_Body); } }
+            get { try { return Rfc2047.DecodeText(TransferEncoding, Encoding, body); } catch { return Encoding.GetString(body); } }
             set
             {
-                if (ro)
+                if (IsReadOnly)
                 {
                     throw new ReadOnlyException();
                 }
 
-                m_Body = Rfc2047.EncodeText(TransferEncoding, Encoding, value);
+                body = Rfc2047.EncodeText(TransferEncoding, Encoding, value);
             }
         }
 
@@ -615,19 +595,12 @@ namespace Cave.Mail
         /// Obtains the first plain text part found in the message. This can only be accessed after checking <see cref="HasPlainTextPart"/>.
         /// </summary>
         /// <returns></returns>
-        public Rfc822Message GetPlainTextPart()
-        {
-            return GetPart("text/plain");
-        }
+        public Rfc822Message GetPlainTextPart() => GetPart("text/plain");
 
         /// <summary>
         /// Obtains all parts of the message. This can only be accessed after checking <see cref="IsMultipart"/>.
         /// </summary>
-        public Rfc822MessageMultipart Multipart => new Rfc822MessageMultipart(m_Parts);
-
-        /// <summary>Gets the name of the log source.</summary>
-        /// <value>The name of the log source.</value>
-        public string LogSourceName => "Rfc822Message";
+        public Rfc822MessageMultipart Multipart => new(Parts);
 
         /// <summary>Gets the multi part boundary.</summary>
         /// <value>The multi part boundary.</value>
@@ -637,18 +610,12 @@ namespace Cave.Mail
         /// Obtains the ContentType of the Message as string.
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return Subject.ToString();
-        }
+        public override string ToString() => Subject.ToString();
 
         /// <summary>
         /// Obtains the hash code for the body of the message.
         /// </summary>
         /// <returns></returns>
-        public override int GetHashCode()
-        {
-            return m_Body.GetHashCode();
-        }
+        public override int GetHashCode() => body.GetHashCode();
     }
 }

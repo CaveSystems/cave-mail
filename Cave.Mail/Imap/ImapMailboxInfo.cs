@@ -55,15 +55,15 @@ namespace Cave.Mail.Imap
     {
         internal static ImapMailboxInfo FromAnswer(string name, ImapAnswer answer)
         {
-            ImapMailboxInfo result = new ImapMailboxInfo()
+            var result = new ImapMailboxInfo()
             {
                 Name = name,
             };
-            foreach (string line in answer.GetDataLines())
+            foreach (var line in answer.GetDataLines())
             {
                 if (line.StartsWith("* "))
                 {
-                    string[] parts = ImapParser.SplitAnswer(line);
+                    var parts = ImapParser.SplitAnswer(line);
                     switch (parts[1])
                     {
                         case "FLAGS":
@@ -72,7 +72,7 @@ namespace Cave.Mail.Imap
                         case "OK":
                             if (parts.Length > 2)
                             {
-                                string[] subParts = ImapParser.SplitAnswer(parts[2].UnboxBrackets());
+                                var subParts = ImapParser.SplitAnswer(parts[2].UnboxBrackets());
                                 switch(subParts[0])
                                 {
                                     case "PERMANENTFLAGS":
@@ -113,12 +113,12 @@ namespace Cave.Mail.Imap
         /// <returns>The result of the operator.</returns>
         public static bool operator ==(ImapMailboxInfo value1, ImapMailboxInfo value2)
         {
-            if (ReferenceEquals(null, value1))
+            if (value1 is null)
             {
-                return ReferenceEquals(null, value2);
+                return value2 is null;
             }
 
-            if (ReferenceEquals(null, value2))
+            if (value2 is null)
             {
                 return false;
             }
@@ -132,12 +132,12 @@ namespace Cave.Mail.Imap
         /// <returns>The result of the operator.</returns>
         public static bool operator !=(ImapMailboxInfo value1, ImapMailboxInfo value2)
         {
-            if (ReferenceEquals(null, value1))
+            if (value1 is null)
             {
-                return !ReferenceEquals(null, value2);
+                return value2 is not null;
             }
 
-            if (ReferenceEquals(null, value2))
+            if (value2 is null)
             {
                 return true;
             }
@@ -174,7 +174,7 @@ namespace Cave.Mail.Imap
         public uint Unseen { get; private set; }
 
         /// <summary>Provides a string "Name [Recent] [Exist]".</summary>
-        /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
+        /// <returns>A <see cref="string" /> that represents this instance.</returns>
         public override string ToString()
         {
             return
@@ -185,30 +185,16 @@ namespace Cave.Mail.Imap
 
         /// <summary>Returns a hash code for this instance.</summary>
         /// <returns>A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.</returns>
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
+        public override int GetHashCode() => base.GetHashCode();
 
         /// <summary>Determines whether the specified <see cref="object" />, is equal to this instance.</summary>
         /// <param name="obj">The <see cref="object" /> to compare with this instance.</param>
         /// <returns><c>true</c> if the specified <see cref="object" /> is equal to this instance; otherwise, <c>false</c>.</returns>
-        public override bool Equals(object obj)
-        {
-            if (obj is ImapMailboxInfo)
-            {
-                return base.Equals((ImapMailboxInfo)obj);
-            }
-
-            return false;
-        }
+        public override bool Equals(object obj) => obj is ImapMailboxInfo info && base.Equals(info);
 
         /// <summary>Determines whether the specified <see cref="ImapMailboxInfo" />, is equal to this instance.</summary>
         /// <param name="other">The <see cref="ImapMailboxInfo" /> to compare with this instance.</param>
         /// <returns><c>true</c> if the specified <see cref="ImapMailboxInfo" /> is equal to this instance; otherwise, <c>false</c>.</returns>
-        public bool Equals(ImapMailboxInfo other)
-        {
-            return other.Exist == Exist && other.Name == Name && other.Recent == Recent;
-        }       
+        public bool Equals(ImapMailboxInfo other) => other.Exist == Exist && other.Name == Name && other.Recent == Recent;
     }
 }
